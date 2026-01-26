@@ -60,9 +60,18 @@
         .hidden { display: none; }
         .summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
 
-        /* Ticket Success Modal */
+        /* Ticket Success Modal Overlay */
         #successOverlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; display:flex; align-items:center; justify-content:center; padding:20px; }
         .ticket-card { background:#fff; color:#333; width:100%; max-width:400px; border-radius:15px; overflow:hidden; text-align:center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+        /* CSS KHUSUS PRINT TIKET */
+        @media print {
+            body * { visibility: hidden; }
+            #successOverlay, #successOverlay * { visibility: visible; }
+            #successOverlay { position: absolute; left: 0; top: 0; width: 100%; background: white !important; display: flex !important; justify-content: center; }
+            .ticket-card { box-shadow: none !important; border: 1px solid #eee; width: 100% !important; max-width: 400px !important; margin: 0 auto; }
+            .btn, .back-link { display: none !important; }
+        }
     </style>
 </head>
 <body>
@@ -103,7 +112,7 @@
                         <label class="form-label">Waktu Kedatangan*</label>
                         <select name="time" class="form-select" required>
                             <option value="">Pilih Jam</option>
-                            <option>16:30</option><option>17:00</option><option>17:30</option><option>18:00</option>
+                            <option>18:00</option><option>19:00</option><option>20:00</option><option>21:00</option>
                         </select>
                     </div>
                 </div>
@@ -136,7 +145,7 @@
                 <div class="p-3 bg-light rounded-3 mb-3" id="finalSummary"></div>
 
                 <div class="text-center border rounded-3 p-3 mb-3 bg-white">
-                    <p class="small fw-bold text-muted mb-2 text-uppercase">Scan & Bayar Sebelum 15 Menit</p>
+                    <p class="small fw-bold text-muted mb-2 text-uppercase">Scan & Bayar Sekarang</p>
                     <img id="qrisImg" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ASTANARASA" class="mb-2 border p-2 shadow-sm">
                     <div class="mb-2"><button type="button" class="btn btn-sm btn-outline-dark" onclick="downloadQR()">💾 Download QRIS</button></div>
                     <h5 class="fw-bold text-danger" id="totalBayarText"></h5>
@@ -175,8 +184,11 @@
     document.getElementById('datePicker').addEventListener('change', function() {
         const val = this.value;
         const selDate = new Date(val);
+        const promoStart = new Date("2026-02-20");
         const promoEnd = new Date("2026-03-01");
-        currentPrice = (selDate <= promoEnd) ? 100000 : 150000;
+        
+        currentPrice = (selDate >= promoStart && selDate <= promoEnd) ? 100000 : 150000;
+        
         document.getElementById('priceInfo').innerText = "Harga: Rp " + currentPrice.toLocaleString('id-ID') + " / Pax";
         if(menuData[val]) {
             document.getElementById('menuTitle').innerText = menuData[val];
@@ -235,24 +247,33 @@
             fetch(SCRIPT_URL, { method: 'POST', body: formData })
             .then(() => {
                 document.body.insertAdjacentHTML('beforeend', `
-                    <div id="successOverlay"><div class="ticket-card">
-                        <div style="background:#28a745; color:#fff; padding:20px;"><h4>RESERVASI BERHASIL!</h4></div>
-                        <div style="padding:30px;">
-                            <p class="small text-muted mb-1">NOMOR RESERVASI</p>
-                            <h2 style="color:#f37021; font-weight:800;">${bookingID}</h2><hr>
-                            <div class="text-start small">
-                                <p class="mb-1">Nama: <b>${formData.get('fname')}</b></p>
-                                <p class="mb-1">Tanggal: <b>${formData.get('date')} / ${formData.get('time')}</b></p>
-                                <p class="mb-0">Pax: <b>${formData.get('pax')} Orang</b></p>
+                    <div id="successOverlay">
+                        <div class="ticket-card">
+                            <div style="background:#28a745; color:#fff; padding:20px;">
+                                <h4 style="margin:0; font-weight:800;">RESERVASI BERHASIL!</h4>
+                                <p style="margin:0; font-size:11px; opacity:0.9;">Tunjukkan tiket ini saat kedatangan</p>
+                            </div>
+                            <div style="padding:25px; background:#fff; color:#333;">
+                                <p style="margin:0; color:#888; font-size:11px; font-weight:bold;">NOMOR RESERVASI</p>
+                                <h2 style="color:#f37021; font-weight:800; letter-spacing:2px; margin:5px 0;">${bookingID}</h2>
+                                <hr style="border-top:2px dashed #eee;">
+                                <div style="text-align:left; font-size:13px; line-height:2;">
+                                    <div style="display:flex; justify-content:space-between;"><span>Nama:</span><b>${formData.get('title')} ${formData.get('fname')}</b></div>
+                                    <div style="display:flex; justify-content:space-between;"><span>Tanggal:</span><b>${formData.get('date')}</b></div>
+                                    <div style="display:flex; justify-content:space-between;"><span>Waktu:</span><b>${formData.get('time')} WIB</b></div>
+                                    <div style="display:flex; justify-content:space-between;"><span>Pax:</span><b>${formData.get('pax')} Orang</b></div>
+                                </div>
+                            </div>
+                            <div class="p-3 bg-light" style="border-top:1px solid #eee;">
+                                <button onclick="window.print()" class="btn btn-dark w-100 fw-bold">💾 SIMPAN TIKET (PDF/SCREENSHOT)</button>
+                                <p style="margin-top:10px; font-size:10px; color:#999;">Gunakan menu "Save as PDF" atau Screenshot layar ini.</p>
                             </div>
                         </div>
-                        <div class="p-3 bg-light"><button onclick="window.print()" class="btn btn-dark w-100">Simpan Tiket (Screenshot/PDF)</button></div>
-                    </div></div>`);
-            }).catch(() => { alert("Gagal!"); btn.disabled = false; });
+                    </div>`);
+            }).catch(() => { alert("Gagal mengirim data!"); btn.disabled = false; btn.innerText = "KIRIM RESERVASI SEKARANG"; });
         };
         reader.readAsDataURL(file);
     });
 </script>
 </body>
-
 </html>
