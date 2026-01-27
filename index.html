@@ -33,17 +33,17 @@
         .form-label { font-size: 0.8rem; font-weight: 700; color: #666; text-transform: uppercase; margin-bottom: 6px; }
         .form-control, .form-select { border: 1px solid #ddd; padding: 12px; border-radius: 8px; font-size: 0.95rem; }
 
-        #menuContainer { background: #fffaf5; border: 2px dashed #f37021; border-radius: 12px; padding: 15px; text-align: center; margin-bottom: 20px; }
+        #menuContainer { background: #fffaf5; border: 2px dashed #f37021; border-radius: 12px; padding: 15px; text-align: center; margin-bottom: 20px; cursor: pointer; }
         #menuDisplay { width: 100%; max-width: 180px; border-radius: 8px; margin-top: 10px; }
         
         .btn-primary-custom { background: var(--accent-color); border: none; color: #fff; width: 100%; padding: 15px; border-radius: 8px; font-weight: 700; transition: 0.3s; }
+        .btn-primary-custom:hover { background: #d65d1a; }
         .btn-primary-custom:disabled { background: #ccc; }
         
         .back-link { color: #888; text-decoration: none; font-size: 0.85rem; font-weight: 600; display: inline-block; margin-bottom: 15px; }
         .hidden { display: none; }
         .summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
 
-        /* Success & Ticket Styles */
         #successOverlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; overflow-y:auto; }
         .ticket-card { background:#fff; color:#333; width:100%; max-width:380px; border-radius:15px; overflow:hidden; text-align:center; }
     </style>
@@ -70,7 +70,8 @@
                     <input type="date" name="date" id="datePicker" class="form-control" required min="2026-02-19" max="2026-03-19">
                     <div id="priceInfo" class="small mt-1 text-muted fw-bold"></div>
                 </div>
-                <div id="menuContainer" class="hidden">
+                <div id="menuContainer" class="hidden" onclick="showLightbox()">
+                    <span class="badge bg-warning text-dark mb-2">KLIK GAMBAR UNTUK DETAIL</span>
                     <h6 id="menuTitle" class="fw-bold mb-2"></h6>
                     <img id="menuDisplay" src="" alt="Menu Image">
                 </div>
@@ -82,11 +83,11 @@
                     <div class="col-6">
                         <label class="form-label">Waktu*</label>
                         <select name="time" class="form-select" required>
-                            <option value="">Jam</option><option>18:00</option><option>19:00</option><option>20:00</option><option>21:00</option>
+                            <option value="">Jam</option><option>16:30</option><option>17:00</option><option>17:30</option><option>18:00</option>
                         </select>
                     </div>
                 </div>
-                <button type="button" class="btn-primary-custom" onclick="goToStep(2)">LANJUT KE DATA DIRI</button>
+                <button type="button" class="btn-primary-custom" onclick="validateStep1()">LANJUT KE DATA DIRI</button>
             </div>
 
             <div id="step2" class="hidden">
@@ -105,16 +106,18 @@
                     <div class="col-6"><label class="form-label">Nama Belakang</label><input type="text" name="lname" class="form-control"></div>
                 </div>
                 <div class="mb-3"><label class="form-label">WhatsApp*</label><input type="tel" name="phone" class="form-control" value="+62" required></div>
-                <div class="mb-4"><label class="form-label">Permintaan Khusus</label><textarea name="request" class="form-control" rows="2"></textarea></div>
+                <div class="mb-4"><label class="form-label">Permintaan Khusus</label><textarea name="request" class="form-control" rows="2" placeholder="Contoh : Baby Chair..."></textarea></div>
                 <button type="button" class="btn-primary-custom" onclick="validateStep2()">KONFIRMASI PESANAN</button>
             </div>
 
             <div id="step3" class="hidden text-dark">
                 <a href="javascript:void(0)" class="back-link" onclick="goToStep(2)">&larr; EDIT DATA</a>
+                <h5 class="fw-bold mb-3">Review Reservasi</h5>
                 <div class="p-3 bg-light rounded-3 mb-3" id="finalSummary"></div>
                 <div class="text-center border rounded-3 p-3 mb-3 bg-white">
                     <p class="small fw-bold text-muted mb-2">SCAN QRIS UNTUK BAYAR</p>
-                    <img id="qrisImg" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ASTANARASA" class="mb-2 border p-2">
+                    <img id="qrisImg" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ASTANARASA" class="mb-2 border p-2 shadow-sm">
+                    <div class="mb-2"><button type="button" class="btn btn-sm btn-outline-dark" onclick="downloadQR()">💾 Download QRIS</button></div>
                     <h5 class="fw-bold text-danger" id="totalBayarText"></h5>
                 </div>
                 <div class="mb-4">
@@ -127,8 +130,11 @@
     </div>
 </div>
 
+<div class="modal fade" id="imgPreviewModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-body text-center p-0"><img id="lightboxImg" src="" class="img-fluid rounded"><div class="p-3"><button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button></div></div></div></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxONIi3NjyuX2aqRNs-_Dtgp4T5DoOpOjQd2d3_ByGBCkmXZP3J33aaXMihP1TYicX70g/exec'; // GANTI INI
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyj0yhXN_5uD4TkFKh-HTnu4_779FVOxwiIXpve9WWyVimyy0qLOvQ6VF-ur6EGOVAwXQ/exec'; 
     let currentPrice = 0;
     const menuData = { "2026-02-19": "Menu A", "2026-02-20": "Menu B", "2026-02-21": "Menu C", "2026-02-22": "Menu D", "2026-02-23": "Menu E", "2026-02-24": "Menu F", "2026-02-25": "Menu G", "2026-02-26": "Menu H", "2026-02-27": "Menu I", "2026-02-28": "Menu J", "2026-03-01": "Menu A", "2026-03-02": "Menu B", "2026-03-03": "Menu C", "2026-03-04": "Menu D", "2026-03-05": "Menu E", "2026-03-06": "Menu F", "2026-03-07": "Menu G", "2026-03-08": "Menu H", "2026-03-09": "Menu I", "2026-03-10": "Menu J", "2026-03-11": "Menu A", "2026-03-12": "Menu B", "2026-03-13": "Menu C", "2026-03-14": "Menu D", "2026-03-15": "Menu E", "2026-03-16": "Menu F", "2026-03-17": "Menu G", "2026-03-18": "Menu H", "2026-03-19": "Menu I" };
     const menuImages = { "Menu A": "asset/img/menu-a.jpg", "Menu B": "asset/img/menu-b.jpg", "Menu C": "asset/img/menu-c.jpg", "Menu D": "asset/img/menu-d.jpg", "Menu E": "asset/img/menu-e.jpg", "Menu F": "asset/img/menu-f.jpg", "Menu G": "asset/img/menu-g.jpg", "Menu H": "asset/img/menu-h.jpg", "Menu I": "asset/img/menu-i.jpg", "Menu J": "asset/img/menu-j.jpg" };
@@ -145,6 +151,32 @@
         }
     });
 
+    async function downloadQR() {
+        const image = document.getElementById('qrisImg');
+        const imageAddr = image.src;
+    
+        try {
+            const response = await fetch(imageAddr);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'QRIS-Astanarasa.png';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            // Jika gagal download otomatis, buka di tab baru sebagai cadangan
+            window.open(imageAddr, '_blank');
+        }
+    }
+
+    function showLightbox() { 
+        document.getElementById('lightboxImg').src = document.getElementById('menuDisplay').src; 
+        new bootstrap.Modal(document.getElementById('imgPreviewModal')).show(); 
+    }
+
     function toggleSubmitBtn() { document.getElementById('submitBtn').disabled = !document.getElementById('buktiBayar').value; }
 
     function goToStep(step) {
@@ -152,6 +184,8 @@
         document.getElementById('step' + step).classList.remove('hidden');
         document.querySelectorAll('.step-item').forEach((it, idx) => { if(idx < step) it.classList.add('active'); else it.classList.remove('active'); });
     }
+
+    function validateStep1() { if(!document.getElementById('datePicker').value || !document.getElementById('paxInput').value) return alert("Lengkapi Jadwal!"); goToStep(2); }
 
     function validateStep2() {
         const f = new FormData(document.getElementById('reservationForm'));
@@ -167,7 +201,7 @@
     document.getElementById('reservationForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
-        btn.innerText = "MENGARSIPKAN TIKET...";
+        btn.innerText = "MENGIRIM...";
         btn.disabled = true;
 
         const dateVal = document.getElementById('datePicker').value;
@@ -175,7 +209,6 @@
         const bookingID = `${("0"+d.getDate()).slice(-2)}${("0"+(d.getMonth()+1)).slice(-2)}-${document.getElementById('paxInput').value.padStart(2,'0')}-${Math.random().toString(36).substring(2,5).toUpperCase()}`;
         const f = new FormData(e.target);
 
-        // BUAT TIKET UNTUK DIFOTO
         const successHTML = `
             <div id="successOverlay">
                 <div id="captureArea" class="ticket-card">
@@ -194,44 +227,50 @@
                         </div>
                     </div>
                 </div>
-                <div class="mt-4 no-print text-center">
-                    <button id="dlAction" class="btn btn-light fw-bold">💾 DOWNLOAD TIKET KE HP</button>
-                    <p class="text-white small mt-2">Tiket telah otomatis tersimpan di sistem kami.</p>
+                <div class="mt-4 text-center">
+                    <button id="dlAction" class="btn btn-light fw-bold">💾 DOWNLOAD TIKET (PNG)</button>
                 </div>
             </div>`;
         document.body.insertAdjacentHTML('beforeend', successHTML);
 
-        // GENERATE GAMBAR TIKET
         const canvas = await html2canvas(document.querySelector("#captureArea"));
         const tiketBase64 = canvas.toDataURL("image/png").split(',')[1];
 
-        // PROSES KIRIM DATA
         const file = document.getElementById('buktiBayar').files[0];
         const reader = new FileReader();
         reader.onload = function(evt) {
-            const finalData = new FormData();
-            finalData.append('buktiBase64', evt.target.result.split(',')[1]);
-            finalData.append('tiketBase64', tiketBase64);
-            finalData.append('bookingID', bookingID);
-            finalData.append('date', f.get('date'));
-            finalData.append('pax', f.get('pax'));
-            finalData.append('time', f.get('time'));
-            finalData.append('title', f.get('title'));
-            finalData.append('fname', f.get('fname'));
-            finalData.append('phone', f.get('phone'));
-            finalData.append('request', f.get('request'));
-            finalData.append('totalHarga', f.get('pax') * currentPrice);
-            finalData.append('menuName', menuData[dateVal]);
-
-            fetch(SCRIPT_URL, { method: 'POST', body: finalData })
-            .then(() => {
+            fetch(SCRIPT_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({
+                    buktiBase64: evt.target.result.split(',')[1],
+                    tiketBase64: tiketBase64,
+                    bookingID: bookingID,
+                    date: f.get('date'),
+                    pax: f.get('pax'),
+                    time: f.get('time'),
+                    title: f.get('title'),
+                    fname: f.get('fname'),
+                    lname: f.get('lname') || "",
+                    phone: f.get('phone'),
+                    request: f.get('request') || "",
+                    totalHarga: parseInt(f.get('pax')) * currentPrice,
+                    menuName: menuData[dateVal]
+                })
+            }).then(() => {
                 btn.innerText = "TERKIRIM!";
                 document.getElementById('dlAction').onclick = () => {
                     const link = document.createElement('a');
                     link.download = `Tiket-${bookingID}.png`;
-                    link.href = canvas.toDataURL();
+                    link.href = canvas.toDataURL("image/png");
                     link.click();
+                    setTimeout(() => {
+                        alert("Terima kasih! Tiket telah diunduh. Sampai jumpa di Astanarasa.");
+                        window.location.reload();
+                    }, 1500);
                 };
+            }).catch(err => {
+                alert("Gagal mengirim data.");
+                btn.disabled = false;
             });
         };
         reader.readAsDataURL(file);
@@ -239,4 +278,3 @@
 </script>
 </body>
 </html>
-
