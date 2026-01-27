@@ -11,94 +11,78 @@
     <style>
         :root { --accent-color: #f37021; --bg-dark: #0c0e12; --card-white: #ffffff; }
         body { background-color: var(--bg-dark); font-family: 'Inter', sans-serif; color: #fff; margin: 0; padding: 0; }
-        
-        .main-card { 
-            background: var(--card-white); color: #333; border-radius: 16px; 
-            max-width: 480px; margin: 30px auto; overflow: hidden; 
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        }
-
+        .main-card { background: var(--card-white); color: #333; border-radius: 16px; max-width: 480px; margin: 30px auto; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
         .header-banner { background: #000; padding: 20px 20px 15px 20px; text-align: center; }
         .header-banner h2 { color: #fff; font-size: 1.2rem; font-weight: 700; margin-bottom: 15px; letter-spacing: 2px; }
         .header-img { width: 100%; height: 140px; object-fit: cover; border-radius: 12px; background: #222; margin-bottom: 10px; }
-
         .stepper-wrapper { display: flex; justify-content: center; padding: 20px 0; background: #fafafa; border-bottom: 1px solid #eee; }
-        .step-item { display: flex; flex-direction: column; align-items: center; position: relative; width: 80px; }
+        .step-item { display: flex; flex-direction: column; align-items: center; width: 80px; }
         .step-circle { width: 34px; height: 34px; border-radius: 50%; background: #e0e0e0; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; transition: 0.4s; }
         .step-item.active .step-circle { background: #28a745; transform: scale(1.1); }
         .step-label { font-size: 10px; margin-top: 5px; color: #999; font-weight: 700; text-transform: uppercase; }
         .step-item.active .step-label { color: #28a745; }
-
         .content-area { padding: 30px; }
         .form-label { font-size: 0.8rem; font-weight: 700; color: #666; text-transform: uppercase; margin-bottom: 6px; }
         .form-control, .form-select { border: 1px solid #ddd; padding: 12px; border-radius: 8px; font-size: 0.95rem; }
-
         #menuContainer { background: #fffaf5; border: 2px dashed #f37021; border-radius: 12px; padding: 15px; text-align: center; margin-bottom: 20px; cursor: pointer; }
         #menuDisplay { width: 100%; max-width: 180px; border-radius: 8px; margin-top: 10px; }
-        
         .btn-primary-custom { background: var(--accent-color); border: none; color: #fff; width: 100%; padding: 15px; border-radius: 8px; font-weight: 700; transition: 0.3s; }
         .btn-primary-custom:hover { background: #d65d1a; }
         .btn-primary-custom:disabled { background: #ccc; }
-        
-        .back-link { color: #888; text-decoration: none; font-size: 0.85rem; font-weight: 600; display: inline-block; margin-bottom: 15px; }
         .hidden { display: none; }
+        .quota-badge-center { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.85); color: #fff; padding: 20px 30px; border-radius: 15px; text-align: center; z-index: 10001; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #444; min-width: 200px; }
+        .quota-badge-center h6 { font-size: 0.7rem; text-transform: uppercase; margin-bottom: 5px; color: #ccc; }
+        .quota-badge-center h2 { font-size: 1.8rem; font-weight: 800; margin: 0; color: #28a745; }
         .summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
-
         #successOverlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; overflow-y:auto; }
-        .ticket-card { background:#fff; color:#333; width:100%; max-width:380px; border-radius:15px; overflow:hidden; text-align:center; }
+        .ticket-card { background:#fff; color:#333; width:100%; max-width:350px; border-radius:15px; overflow:hidden; text-align:center; }
+        .modal-portrait { max-width: 320px; margin: auto; }
+        #loader { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center; }
     </style>
 </head>
 <body>
+
+<div id="loader"><div class="spinner-border text-light"></div></div>
 
 <div class="container">
     <div class="main-card">
         <div class="header-banner">
             <h2>ASTANARASA RESTAURANT</h2>
-            <img src="asset/img/header-landscape.jpg" class="header-img" alt="Header">
+            <img src="asset/img/header-landscape.jpg" class="header-img">
         </div>
-
         <div class="stepper-wrapper">
             <div class="step-item active" id="stepIcon1"><div class="step-circle">1</div><div class="step-label">Jadwal</div></div>
             <div class="step-item" id="stepIcon2"><div class="step-circle">2</div><div class="step-label">Data</div></div>
             <div class="step-item" id="stepIcon3"><div class="step-circle">3</div><div class="step-label">Review</div></div>
         </div>
-
         <form id="reservationForm" class="content-area">
             <div id="step1">
                 <div class="mb-4">
                     <label class="form-label">Pilih Tanggal Reservasi*</label>
-                    <input type="date" name="date" id="datePicker" class="form-control" required min="2026-02-19" max="2026-03-19">
+                    <input type="date" name="date" id="datePicker" class="form-control" required min="2026-02-20" max="2026-03-19">
                     <div id="priceInfo" class="small mt-1 text-muted fw-bold"></div>
                 </div>
                 <div id="menuContainer" class="hidden" onclick="showLightbox()">
                     <span class="badge bg-warning text-dark mb-2">KLIK GAMBAR UNTUK DETAIL</span>
                     <h6 id="menuTitle" class="fw-bold mb-2"></h6>
-                    <img id="menuDisplay" src="" alt="Menu Image">
+                    <img id="menuDisplay" src="">
                 </div>
                 <div class="row g-3 mb-4">
-                    <div class="col-6">
-                        <label class="form-label">Jumlah Orang*</label>
-                        <input type="number" name="pax" id="paxInput" class="form-control" placeholder="0" required>
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label">Waktu*</label>
-                        <select name="time" class="form-select" required>
-                            <option value="">Jam</option><option>16:30</option><option>17:00</option><option>17:30</option><option>18:00</option>
-                        </select>
+                    <div class="col-6"><label class="form-label">Jumlah Orang*</label><input type="number" name="pax" id="paxInput" class="form-control" placeholder="0" required></div>
+                    <div class="col-6"><label class="form-label">Waktu*</label>
+                        <select name="time" class="form-select" required><option value="">Jam</option><option>16:30</option><option>17:00</option><option>17:30</option><option>18:00</option></select>
                     </div>
                 </div>
-                <button type="button" class="btn-primary-custom" onclick="validateStep1()">LANJUT KE DATA DIRI</button>
+                <button type="button" class="btn-primary-custom" id="btnNext1" onclick="checkQuotaAndTerms()">LANJUT KE DATA DIRI</button>
             </div>
 
             <div id="step2" class="hidden">
-                <a href="javascript:void(0)" class="back-link" onclick="goToStep(1)">&larr; KEMBALI</a>
-                <div class="mb-3">
+                <a href="javascript:void(0)" style="color:#888; text-decoration:none; font-size:0.85rem;" onclick="goToStep(1)">&larr; KEMBALI</a>
+                <div class="mb-3 mt-2">
                     <label class="form-label">Panggilan</label>
                     <div class="d-flex gap-2">
-                        <input type="radio" class="btn-check" name="title" id="mr" value="Mr." checked>
-                        <label class="btn btn-outline-secondary btn-sm w-100" for="mr">Mr.</label>
-                        <input type="radio" class="btn-check" name="title" id="ms" value="Ms.">
-                        <label class="btn btn-outline-secondary btn-sm w-100" for="ms">Ms.</label>
+                        <input type="radio" class="btn-check" name="title" id="mr" value="Mr." checked><label class="btn btn-outline-secondary btn-sm w-100" for="mr">Mr.</label>
+                        <input type="radio" class="btn-check" name="title" id="mrs" value="Mrs."><label class="btn btn-outline-secondary btn-sm w-100" for="mrs">Mrs.</label>
                     </div>
                 </div>
                 <div class="row g-2 mb-3">
@@ -106,12 +90,12 @@
                     <div class="col-6"><label class="form-label">Nama Belakang</label><input type="text" name="lname" class="form-control"></div>
                 </div>
                 <div class="mb-3"><label class="form-label">WhatsApp*</label><input type="tel" name="phone" class="form-control" value="+62" required></div>
-                <div class="mb-4"><label class="form-label">Permintaan Khusus</label><textarea name="request" class="form-control" rows="2" placeholder="Contoh : Baby Chair..."></textarea></div>
+                <div class="mb-4"><label class="form-label">Permintaan Khusus</label><textarea name="request" class="form-control" rows="2" placeholder="Contoh : Birthday Surprise..."></textarea></div>
                 <button type="button" class="btn-primary-custom" onclick="validateStep2()">KONFIRMASI PESANAN</button>
             </div>
 
             <div id="step3" class="hidden text-dark">
-                <a href="javascript:void(0)" class="back-link" onclick="goToStep(2)">&larr; EDIT DATA</a>
+                <a href="javascript:void(0)" style="color:#888; text-decoration:none; font-size:0.85rem;" onclick="goToStep(2)">&larr; EDIT DATA</a>
                 <h5 class="fw-bold mb-3">Review Reservasi</h5>
                 <div class="p-3 bg-light rounded-3 mb-3" id="finalSummary"></div>
                 <div class="text-center border rounded-3 p-3 mb-3 bg-white">
@@ -120,13 +104,28 @@
                     <div class="mb-2"><button type="button" class="btn btn-sm btn-outline-dark" onclick="downloadQR()">💾 Download QRIS</button></div>
                     <h5 class="fw-bold text-danger" id="totalBayarText"></h5>
                 </div>
-                <div class="mb-4">
-                    <label class="form-label text-danger">Upload Bukti Pembayaran*</label>
-                    <input type="file" id="buktiBayar" name="file" class="form-control" accept="image/*" required onchange="toggleSubmitBtn()">
-                </div>
+                <div class="mb-4"><label class="form-label text-danger">Upload Bukti Pembayaran*</label><input type="file" id="buktiBayar" class="form-control" accept="image/*" required onchange="document.getElementById('submitBtn').disabled=false"></div>
                 <button type="submit" class="btn-primary-custom" id="submitBtn" disabled>KIRIM RESERVASI</button>
             </div>
         </form>
+    </div>
+</div>
+
+<div class="modal fade" id="termsModal" data-bs-backdrop="static" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-portrait">
+        <div class="modal-content text-dark">
+            <div class="modal-header py-2"><h6 class="modal-title fw-bold">Syarat & Ketentuan</h6></div>
+            <div class="modal-body py-3" style="font-size: 0.75rem;">
+                <p class="mb-1">1. Reservasi sah jika bukti bayar terupload.</p>
+                <p class="mb-1">2. Pembatalan < 24 jam dianggap hangus.</p>
+                <p class="mb-1">3. Datang 15 menit sebelum jadwal.</p>
+                <p class="mb-1">4. Toleransi keterlambatan 30 menit.</p>
+            </div>
+            <div class="modal-footer flex-column py-2">
+                <div class="form-check w-100 mb-2"><input class="form-check-input" type="checkbox" id="agreeCheck" onchange="document.getElementById('btnAgree').disabled = !this.checked"><label class="form-check-label" style="font-size:0.7rem;">Saya Setuju</label></div>
+                <button type="button" class="btn btn-primary btn-sm w-100" id="btnAgree" disabled onclick="goToStep(2); bootstrap.Modal.getInstance(document.getElementById('termsModal')).hide();">LANJUTKAN</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -134,58 +133,70 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyj0yhXN_5uD4TkFKh-HTnu4_779FVOxwiIXpve9WWyVimyy0qLOvQ6VF-ur6EGOVAwXQ/exec'; 
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6oLCIPO4-rNYHb5EZvtQz5OxBsk0ASWO-7p9kr_lkyJrWDT1NM72zG2pzdmKRxCEyag/exec'; 
     let currentPrice = 0;
     const menuData = { "2026-02-19": "Menu A", "2026-02-20": "Menu B", "2026-02-21": "Menu C", "2026-02-22": "Menu D", "2026-02-23": "Menu E", "2026-02-24": "Menu F", "2026-02-25": "Menu G", "2026-02-26": "Menu H", "2026-02-27": "Menu I", "2026-02-28": "Menu J", "2026-03-01": "Menu A", "2026-03-02": "Menu B", "2026-03-03": "Menu C", "2026-03-04": "Menu D", "2026-03-05": "Menu E", "2026-03-06": "Menu F", "2026-03-07": "Menu G", "2026-03-08": "Menu H", "2026-03-09": "Menu I", "2026-03-10": "Menu J", "2026-03-11": "Menu A", "2026-03-12": "Menu B", "2026-03-13": "Menu C", "2026-03-14": "Menu D", "2026-03-15": "Menu E", "2026-03-16": "Menu F", "2026-03-17": "Menu G", "2026-03-18": "Menu H", "2026-03-19": "Menu I" };
     const menuImages = { "Menu A": "asset/img/menu-a.jpg", "Menu B": "asset/img/menu-b.jpg", "Menu C": "asset/img/menu-c.jpg", "Menu D": "asset/img/menu-d.jpg", "Menu E": "asset/img/menu-e.jpg", "Menu F": "asset/img/menu-f.jpg", "Menu G": "asset/img/menu-g.jpg", "Menu H": "asset/img/menu-h.jpg", "Menu I": "asset/img/menu-i.jpg", "Menu J": "asset/img/menu-j.jpg" };
 
-    document.getElementById('datePicker').addEventListener('change', function() {
+    // FITUR: INFO KUOTA MINIMALIS & CEPAT
+    document.getElementById('datePicker').addEventListener('change', async function() {
         const val = this.value;
+        if(!val) return;
+        
         const selDate = new Date(val);
-        currentPrice = (selDate >= new Date("2026-02-20") && selDate <= new Date("2026-03-01")) ? 100000 : 150000;
+        currentPrice = (selDate >= new Date("2026-02-20") && selDate <= new Date("2026-03-02")) ? 100000 : 150000;
         document.getElementById('priceInfo').innerText = "Harga: Rp " + currentPrice.toLocaleString('id-ID') + " / Pax";
+        
         if(menuData[val]) {
             document.getElementById('menuTitle').innerText = menuData[val];
             document.getElementById('menuDisplay').src = menuImages[menuData[val]];
             document.getElementById('menuContainer').classList.remove('hidden');
         }
+
+        // TAMPILAN KUOTA DI TENAH (MODAL KECIL)
+        try {
+            const resp = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "checkQuota", date: val }) });
+            const result = await resp.json();
+            const remaining = 500 - (result.used || 0);
+            
+            let qBox = document.getElementById('qBox');
+            if(!qBox) {
+                document.body.insertAdjacentHTML('beforeend', '<div id="qBox" class="quota-badge-center"><h6>Sisa Kuota Tersedia</h6><h2 id="qCount"></h2><p style="font-size:10px; margin-top:10px; color:#888;">Klik di mana saja untuk tutup</p></div>');
+                qBox = document.getElementById('qBox');
+                qBox.onclick = () => qBox.style.display = 'none';
+            }
+            document.getElementById('qCount').innerText = `${remaining} Pax`;
+            qBox.style.display = 'block';
+            
+            // Otomatis hilang dalam 3 detik atau klik untuk tutup
+            setTimeout(() => { qBox.style.display = 'none'; }, 3000);
+        } catch (e) { console.log("Quota check failed"); }
     });
 
+    // LANGSUNG KE SYARAT & KETENTUAN
+    function checkQuotaAndTerms() {
+        const date = document.getElementById('datePicker').value;
+        const pax = document.getElementById('paxInput').value;
+        if(!date || !pax) return alert("Mohon lengkapi Tanggal dan Jumlah Orang!");
+        new bootstrap.Modal(document.getElementById('termsModal')).show();
+    }
+
     async function downloadQR() {
-        const image = document.getElementById('qrisImg');
-        const imageAddr = image.src;
-    
+        const addr = document.getElementById('qrisImg').src;
         try {
-            const response = await fetch(imageAddr);
-            const blob = await response.blob();
+            const res = await fetch(addr); const blob = await res.blob();
             const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'QRIS-Astanarasa.png';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            // Jika gagal download otomatis, buka di tab baru sebagai cadangan
-            window.open(imageAddr, '_blank');
-        }
+            const a = document.createElement('a'); a.href = url; a.download = 'QRIS.png'; a.click();
+        } catch (e) { window.open(addr, '_blank'); }
     }
 
-    function showLightbox() { 
-        document.getElementById('lightboxImg').src = document.getElementById('menuDisplay').src; 
-        new bootstrap.Modal(document.getElementById('imgPreviewModal')).show(); 
-    }
-
-    function toggleSubmitBtn() { document.getElementById('submitBtn').disabled = !document.getElementById('buktiBayar').value; }
+    function showLightbox() { document.getElementById('lightboxImg').src = document.getElementById('menuDisplay').src; new bootstrap.Modal(document.getElementById('imgPreviewModal')).show(); }
 
     function goToStep(step) {
         document.querySelectorAll('[id^="step"]').forEach(el => { if(!el.id.startsWith('stepIcon')) el.classList.add('hidden'); });
         document.getElementById('step' + step).classList.remove('hidden');
         document.querySelectorAll('.step-item').forEach((it, idx) => { if(idx < step) it.classList.add('active'); else it.classList.remove('active'); });
     }
-
-    function validateStep1() { if(!document.getElementById('datePicker').value || !document.getElementById('paxInput').value) return alert("Lengkapi Jadwal!"); goToStep(2); }
 
     function validateStep2() {
         const f = new FormData(document.getElementById('reservationForm'));
@@ -200,10 +211,7 @@
 
     document.getElementById('reservationForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        const btn = document.getElementById('submitBtn');
-        btn.innerText = "MENGIRIM...";
-        btn.disabled = true;
-
+        const btn = document.getElementById('submitBtn'); btn.innerText = "MENGIRIM..."; btn.disabled = true;
         const dateVal = document.getElementById('datePicker').value;
         const d = new Date(dateVal);
         const bookingID = `${("0"+d.getDate()).slice(-2)}${("0"+(d.getMonth()+1)).slice(-2)}-${document.getElementById('paxInput').value.padStart(2,'0')}-${Math.random().toString(36).substring(2,5).toUpperCase()}`;
@@ -211,30 +219,44 @@
 
         const successHTML = `
             <div id="successOverlay">
-                <div id="captureArea" class="ticket-card">
-                    <div style="background:#28a745; color:#fff; padding:20px;">
-                        <h4 style="margin:0; font-weight:800;">RESERVASI BERHASIL!</h4>
-                    </div>
+                <div id="captureArea" class="ticket-card" style="max-width: 400px;">
+                    <div style="background:#28a745; color:#fff; padding:20px;"><h4 style="margin:0; font-weight:800;">RESERVASI BERHASIL!</h4></div>
                     <div style="padding:25px; background:#fff; color:#333;">
                         <p style="margin:0; color:#888; font-size:11px; font-weight:bold;">NOMOR RESERVASI</p>
                         <h2 style="color:#f37021; font-weight:800; letter-spacing:2px; margin:5px 0;">${bookingID}</h2>
                         <hr style="border-top:2px dashed #eee;">
-                        <div style="text-align:left; font-size:13px; line-height:2.2;">
+                        <div style="text-align:left; font-size:13px; line-height:2.2; margin-bottom: 20px;">
                             <div style="display:flex; justify-content:space-between;"><span>Nama:</span><b>${f.get('title')} ${f.get('fname')}</b></div>
                             <div style="display:flex; justify-content:space-between;"><span>Tanggal:</span><b>${f.get('date')}</b></div>
                             <div style="display:flex; justify-content:space-between;"><span>Waktu:</span><b>${f.get('time')} WIB</b></div>
                             <div style="display:flex; justify-content:space-between;"><span>Jumlah:</span><b>${f.get('pax')} Orang</b></div>
                         </div>
+                        
+                        <div style="background:#f9f9f9; border: 1px solid #eee; border-radius: 8px; padding: 12px; text-align: left;">
+                            <p style="margin:0 0 5px 0; font-size:9px; font-weight:bold; color:#555; text-transform:uppercase;">Syarat & Ketentuan (Disetujui):</p>
+                            <ul style="margin:0; padding-left:15px; font-size:8px; color:#777; line-height:1.4;">
+                                <li>Bukti bayar valid adalah syarat sah reservasi.</li>
+                                <li>Pembatalan < 24 jam dianggap hangus.</li>
+                                <li>Datang 15 menit sebelum jadwal.</li>
+                                <li>Toleransi keterlambatan maksimal 30 menit.</li>
+                            </ul>
+                            <div style="margin-top:8px; border-top:1px solid #eee; pt-5px; text-align:right;">
+                                <span style="font-size:8px; color:#28a745; font-weight:bold;">&#10003; CUSTOMER TELAH MENYETUJUI</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="mt-4 text-center">
-                    <button id="dlAction" class="btn btn-light fw-bold">💾 DOWNLOAD TIKET (PNG)</button>
-                </div>
+                <div class="mt-4"><button id="dlAction" class="btn btn-light fw-bold">💾 DOWNLOAD TIKET (PNG)</button></div>
             </div>`;
         document.body.insertAdjacentHTML('beforeend', successHTML);
 
-        const canvas = await html2canvas(document.querySelector("#captureArea"));
+        const canvas = await html2canvas(document.querySelector("#captureArea"), { scale: 2 });
         const tiketBase64 = canvas.toDataURL("image/png").split(',')[1];
+        
+        document.getElementById('dlAction').onclick = () => {
+            const link = document.createElement('a'); link.download = `Tiket-${bookingID}.png`; link.href = canvas.toDataURL("image/png"); link.click();
+            setTimeout(() => window.location.reload(), 1200);
+        };
 
         const file = document.getElementById('buktiBayar').files[0];
         const reader = new FileReader();
@@ -242,35 +264,11 @@
             fetch(SCRIPT_URL, { 
                 method: 'POST', 
                 body: JSON.stringify({
-                    buktiBase64: evt.target.result.split(',')[1],
-                    tiketBase64: tiketBase64,
-                    bookingID: bookingID,
-                    date: f.get('date'),
-                    pax: f.get('pax'),
-                    time: f.get('time'),
-                    title: f.get('title'),
-                    fname: f.get('fname'),
-                    lname: f.get('lname') || "",
-                    phone: f.get('phone'),
-                    request: f.get('request') || "",
-                    totalHarga: parseInt(f.get('pax')) * currentPrice,
-                    menuName: menuData[dateVal]
+                    buktiBase64: evt.target.result.split(',')[1], tiketBase64: tiketBase64, bookingID: bookingID,
+                    date: f.get('date'), pax: f.get('pax'), time: f.get('time'), title: f.get('title'),
+                    fname: f.get('fname'), lname: f.get('lname') || "", phone: f.get('phone'),
+                    request: f.get('request') || "", totalHarga: parseInt(f.get('pax')) * currentPrice, menuName: menuData[dateVal]
                 })
-            }).then(() => {
-                btn.innerText = "TERKIRIM!";
-                document.getElementById('dlAction').onclick = () => {
-                    const link = document.createElement('a');
-                    link.download = `Tiket-${bookingID}.png`;
-                    link.href = canvas.toDataURL("image/png");
-                    link.click();
-                    setTimeout(() => {
-                        alert("Terima kasih! Tiket telah diunduh. Sampai jumpa di Astanarasa.");
-                        window.location.reload();
-                    }, 1500);
-                };
-            }).catch(err => {
-                alert("Gagal mengirim data.");
-                btn.disabled = false;
             });
         };
         reader.readAsDataURL(file);
