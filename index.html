@@ -133,7 +133,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6oLCIPO4-rNYHb5EZvtQz5OxBsk0ASWO-7p9kr_lkyJrWDT1NM72zG2pzdmKRxCEyag/exec'; 
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxniTvvkLhnv8_ABVIocDajjxuLQ3ZrgmOUXDXWYH4I5Xv9_KvAIyuElRW6Kr-31X8yqA/exec'; 
     let currentPrice = 0;
     const menuData = { "2026-02-19": "Menu A", "2026-02-20": "Menu B", "2026-02-21": "Menu C", "2026-02-22": "Menu D", "2026-02-23": "Menu E", "2026-02-24": "Menu F", "2026-02-25": "Menu G", "2026-02-26": "Menu H", "2026-02-27": "Menu I", "2026-02-28": "Menu J", "2026-03-01": "Menu A", "2026-03-02": "Menu B", "2026-03-03": "Menu C", "2026-03-04": "Menu D", "2026-03-05": "Menu E", "2026-03-06": "Menu F", "2026-03-07": "Menu G", "2026-03-08": "Menu H", "2026-03-09": "Menu I", "2026-03-10": "Menu J", "2026-03-11": "Menu A", "2026-03-12": "Menu B", "2026-03-13": "Menu C", "2026-03-14": "Menu D", "2026-03-15": "Menu E", "2026-03-16": "Menu F", "2026-03-17": "Menu G", "2026-03-18": "Menu H", "2026-03-19": "Menu I" };
     const menuImages = { "Menu A": "asset/img/menu-a.jpg", "Menu B": "asset/img/menu-b.jpg", "Menu C": "asset/img/menu-c.jpg", "Menu D": "asset/img/menu-d.jpg", "Menu E": "asset/img/menu-e.jpg", "Menu F": "asset/img/menu-f.jpg", "Menu G": "asset/img/menu-g.jpg", "Menu H": "asset/img/menu-h.jpg", "Menu I": "asset/img/menu-i.jpg", "Menu J": "asset/img/menu-j.jpg" };
@@ -142,36 +142,82 @@
     document.getElementById('datePicker').addEventListener('change', async function() {
         const val = this.value;
         if(!val) return;
+    
+        let qBox = document.getElementById('qBox');
+        if(!qBox) {
+            document.body.insertAdjacentHTML('beforeend', 
+                '<div id="qBox" class="quota-badge-center">' +
+                '<h6>Status Ketersediaan</h6>' +
+                '<h2 id="qCount">Memeriksa...</h2>' +
+                '<div id="qHint" style="font-size:9px; margin-top:10px; color:#aaa; display:none;">(Klik untuk menutup)</div>' +
+                '</div>'
+            );
+            qBox = document.getElementById('qBox');
+        }
+
+        // 1. NONAKTIFKAN KLIK SAAT MEMERIKSA
+        qBox.onclick = null; 
+        qBox.style.cursor = "default";
+        document.getElementById('qHint').style.display = "none";
+
+        document.getElementById('qCount').innerText = "Sedang memeriksa...";
+        document.getElementById('qCount').style.color = "#28a745";
+        document.getElementById('qCount').style.fontSize = "1rem";
+        qBox.style.display = 'block';
+
+        try {
+            const resp = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "checkQuota", date: val }) });
+            const result = await resp.json();
+            const used = result.used || 0;
+            const max = 500;
+            const remaining = max - used;
         
+            const qCountEl = document.getElementById('qCount');
+        
+            if (remaining <= 0) {
+                qCountEl.innerText = "FULL BOOK";
+                qCountEl.style.color = "#ff4444";
+                document.getElementById('btnNext1').disabled = true;
+            } else {
+                qCountEl.innerText = `${remaining} Pax Tersedia`;
+                qCountEl.style.color = "#28a745";
+                document.getElementById('btnNext1').disabled = false;
+            }
+
+            // 2. AKTIFKAN KLIK HANYA SETELAH DATA MUNCUL
+            qBox.style.cursor = "pointer";
+            document.getElementById('qHint').style.display = "block";
+            qBox.onclick = function() {
+                this.style.display = 'none';
+            };
+        
+            // Timer cadangan diperpendek karena user sudah bisa klik sendiri
+            setTimeout(() => { qBox.style.display = 'none'; }, 60000);        
+        } catch (e) { 
+            document.getElementById('qCount').innerText = "Error Koneksi";
+            qBox.style.cursor = "pointer";
+            qBox.onclick = () => qBox.style.display = 'none';
+            setTimeout(() => { qBox.style.display = 'none'; }, 2000);
+        }
+
+        // Update Harga & Menu (tetap sama)
         const selDate = new Date(val);
         currentPrice = (selDate >= new Date("2026-02-20") && selDate <= new Date("2026-03-02")) ? 100000 : 150000;
         document.getElementById('priceInfo').innerText = "Harga: Rp " + currentPrice.toLocaleString('id-ID') + " / Pax";
-        
         if(menuData[val]) {
             document.getElementById('menuTitle').innerText = menuData[val];
             document.getElementById('menuDisplay').src = menuImages[menuData[val]];
             document.getElementById('menuContainer').classList.remove('hidden');
         }
-
-        // TAMPILAN KUOTA DI TENAH (MODAL KECIL)
-        try {
-            const resp = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "checkQuota", date: val }) });
-            const result = await resp.json();
-            const remaining = 500 - (result.used || 0);
-            
-            let qBox = document.getElementById('qBox');
-            if(!qBox) {
-                document.body.insertAdjacentHTML('beforeend', '<div id="qBox" class="quota-badge-center"><h6>Sisa Kuota Tersedia</h6><h2 id="qCount"></h2><p style="font-size:10px; margin-top:10px; color:#888;">Klik di mana saja untuk tutup</p></div>');
-                qBox = document.getElementById('qBox');
-                qBox.onclick = () => qBox.style.display = 'none';
-            }
-            document.getElementById('qCount').innerText = `${remaining} Pax`;
-            qBox.style.display = 'block';
-            
-            // Otomatis hilang dalam 3 detik atau klik untuk tutup
-            setTimeout(() => { qBox.style.display = 'none'; }, 3000);
-        } catch (e) { console.log("Quota check failed"); }
     });
+
+    // Perbaikan format tanggal di tiket (Fitur 2)
+    function getTanggalCantik(dateStr) {
+        if(!dateStr) return "-";
+        const d = new Date(dateStr);
+        const bulan = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+        return d.getDate() + " " + bulan[d.getMonth()] + " " + d.getFullYear();
+    }
 
     // LANGSUNG KE SYARAT & KETENTUAN
     function checkQuotaAndTerms() {
@@ -214,22 +260,35 @@
         const btn = document.getElementById('submitBtn'); btn.innerText = "MENGIRIM..."; btn.disabled = true;
         const dateVal = document.getElementById('datePicker').value;
         const d = new Date(dateVal);
-        const bookingID = `${("0"+d.getDate()).slice(-2)}${("0"+(d.getMonth()+1)).slice(-2)}-${document.getElementById('paxInput').value.padStart(2,'0')}-${Math.random().toString(36).substring(2,5).toUpperCase()}`;
+        const randomChars = Array.from({length: 3}, () => 
+            String.fromCharCode(65 + Math.floor(Math.random() * 26))
+        ).join('');
+        const bookingID = `${("0"+d.getDate()).slice(-2)}${("0"+(d.getMonth()+1)).slice(-2)}-${document.getElementById('paxInput').value.padStart(2,'0')}-${randomChars}`;
         const f = new FormData(e.target);
 
         const successHTML = `
             <div id="successOverlay">
-                <div id="captureArea" class="ticket-card" style="max-width: 400px;">
-                    <div style="background:#28a745; color:#fff; padding:20px;"><h4 style="margin:0; font-weight:800;">RESERVASI BERHASIL!</h4></div>
+                <div id="captureArea" class="ticket-card" style="max-width: 380px; border: none; background: #fff; border-radius:15px; height: auto; overflow:visible; text-align:center;">
+                    <div style="background:#28a745; color:#fff; padding:20px;">
+                        <h4 style="margin:0; font-weight:800;">RESERVASI BERHASIL!</h4>
+                    </div>
                     <div style="padding:25px; background:#fff; color:#333;">
                         <p style="margin:0; color:#888; font-size:11px; font-weight:bold;">NOMOR RESERVASI</p>
                         <h2 style="color:#f37021; font-weight:800; letter-spacing:2px; margin:5px 0;">${bookingID}</h2>
+                        
+                        <div style="margin: 3px 0;">
+                            <img src="https://quickchart.io/qr?text=${bookingID}&size=150" 
+                                 crossorigin="anonymous" 
+                                 style="width: 140px; height: 140px; border: 1px solid #eee; padding: 0px;">
+                        </div>
+
                         <hr style="border-top:2px dashed #eee;">
-                        <div style="text-align:left; font-size:13px; line-height:2.2; margin-bottom: 20px;">
-                            <div style="display:flex; justify-content:space-between;"><span>Nama:</span><b>${f.get('title')} ${f.get('fname')}</b></div>
-                            <div style="display:flex; justify-content:space-between;"><span>Tanggal:</span><b>${f.get('date')}</b></div>
+                        
+                        <div style="text-align:left; font-size:13px; line-height:2.2; margin-bottom: 20px;">                            
+                            <div style="display:flex; justify-content:space-between;"><span>Nama:</span><b>${f.get('title')} ${f.get('fname')} ${f.get('lname') || ""}</b></div>                            
+                            <div style="display:flex; justify-content:space-between;"><span>Tanggal:</span><b>${getTanggalCantik(f.get('date'))}</b></div>
                             <div style="display:flex; justify-content:space-between;"><span>Waktu:</span><b>${f.get('time')} WIB</b></div>
-                            <div style="display:flex; justify-content:space-between;"><span>Jumlah:</span><b>${f.get('pax')} Orang</b></div>
+                            <div style="display:flex; justify-content:space-between;"><span>Jumlah:</span><b>${f.get('pax').padStart(2, '0')} Orang</b></div>
                         </div>
                         
                         <div style="background:#f9f9f9; border: 1px solid #eee; border-radius: 8px; padding: 12px; text-align: left;">
@@ -250,7 +309,21 @@
             </div>`;
         document.body.insertAdjacentHTML('beforeend', successHTML);
 
-        const canvas = await html2canvas(document.querySelector("#captureArea"), { scale: 2 });
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        const canvas = await html2canvas(document.querySelector("#captureArea"), { 
+            scale: 2,
+            useCORS: true,
+            allowTaint: false,
+            backgroundColor: null, // Membuat background luar card transparan
+            scrollX: 0,
+            scrollY: -window.scrollY, // Menghindari offset jika halaman di-scroll
+            onclone: (clonedDoc) => {
+                // Memastikan elemen di clone memiliki tinggi otomatis sebelum difoto
+                clonedDoc.getElementById("captureArea").style.height = "auto";
+            }
+        });
+        
         const tiketBase64 = canvas.toDataURL("image/png").split(',')[1];
         
         document.getElementById('dlAction').onclick = () => {
