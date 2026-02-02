@@ -9,10 +9,10 @@
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     
     <style>
-        :root { --accent-color: #f37021; --bg-dark: #0c0e12; --card-white: #ffffff; }
+        :root { --accent-color: #f37021; --bg-dark: #3b3b3b; --card-white: #ffffff; }
         body { background-color: var(--bg-dark); font-family: 'Inter', sans-serif; color: #fff; margin: 0; padding: 0; }
         .main-card { background: var(--card-white); color: #333; border-radius: 16px; max-width: 480px; margin: 30px auto; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        .header-banner { background: #000; padding: 20px 20px 15px 20px; text-align: center; }
+        .header-banner { background: #0f4b1e; padding: 20px 20px 15px 20px; text-align: center; }
         .header-banner h2 { color: #fff; font-size: 1.2rem; font-weight: 700; margin-bottom: 15px; letter-spacing: 2px; }
         .header-img { width: 100%; height: 140px; object-fit: cover; border-radius: 12px; background: #222; margin-bottom: 10px; }
         .stepper-wrapper { display: flex; justify-content: center; padding: 20px 0; background: #fafafa; border-bottom: 1px solid #eee; }
@@ -30,12 +30,15 @@
         .btn-primary-custom:hover { background: #d65d1a; }
         .btn-primary-custom:disabled { background: #ccc; }
         .hidden { display: none; }
+        .nav-pills .nav-link { color: #666; font-size: 12px; font-weight: bold; border: 1px solid #ddd; margin: 0 5px; }
+        .nav-pills .nav-link.active { background-color: var(--accent-color) !important; border-color: var(--accent-color); }
+        #vaNumber { letter-spacing: 1px; color: #333; }
         .quota-badge-center { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.85); color: #fff; padding: 20px 30px; border-radius: 15px; text-align: center; z-index: 10001; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #444; min-width: 200px; }
         .quota-badge-center h6 { font-size: 0.7rem; text-transform: uppercase; margin-bottom: 5px; color: #ccc; }
         .quota-badge-center h2 { font-size: 1.8rem; font-weight: 800; margin: 0; color: #28a745; }
         .summary-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; font-size: 0.9rem; }
         #successOverlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; overflow-y:auto; }
-        .ticket-card { background:#fff; color:#333; width:100%; max-width:350px; border-radius:15px; overflow:hidden; text-align:center; }
+        .ticket-card { background:#fff; color:#333; width:100%; max-width:350px; border-radius:0px; overflow:hidden; text-align:center; }
         .modal-portrait { max-width: 320px; margin: auto; }
         #loader { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:10000; justify-content:center; align-items:center; }
     </style>
@@ -67,13 +70,15 @@
                     <h6 id="menuTitle" class="fw-bold mb-2"></h6>
                     <img id="menuDisplay" src="">
                 </div>
-                <div class="row g-3 mb-4">
-                    <div class="col-6"><label class="form-label">Jumlah Orang*</label><input type="number" name="pax" id="paxInput" class="form-control" placeholder="0" required></div>
-                    <div class="col-6"><label class="form-label">Waktu*</label>
-                        <select name="time" class="form-select" required><option value="">Jam</option><option>16:30</option><option>17:00</option><option>17:30</option><option>18:00</option></select>
-                    </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6"><label class="form-label">Dewasa</label><input type="number" id="paxDewasa" class="form-control" value="1" min="0"></div>
+                    <div class="col-6"><label class="form-label">Anak-anak</label><input type="number" id="paxAnak" class="form-control" value="0" min="0"></div>
                 </div>
+                <input type="hidden" name="pax" id="paxTotal">
                 <button type="button" class="btn-primary-custom" id="btnNext1" onclick="checkQuotaAndTerms()">LANJUT KE DATA DIRI</button>
+                <div class="text-center mt-3">
+                    <p class="small text-muted">Sudah reservasi? <a href="javascript:void(0)" class="text-primary fw-bold" onclick="showRescheduleModal()">Ubah Jadwal (Reschedule)</a></p>
+                </div>
             </div>
 
             <div id="step2" class="hidden">
@@ -89,8 +94,8 @@
                     <div class="col-6"><label class="form-label">Nama Depan*</label><input type="text" name="fname" class="form-control" required></div>
                     <div class="col-6"><label class="form-label">Nama Belakang</label><input type="text" name="lname" class="form-control"></div>
                 </div>
-                <div class="mb-3"><label class="form-label">WhatsApp*</label><input type="tel" name="phone" class="form-control" value="+62" required></div>
-                <div class="mb-4"><label class="form-label">Permintaan Khusus</label><textarea name="request" class="form-control" rows="2" placeholder="Contoh : Birthday Surprise..."></textarea></div>
+                <div class="mb-3"><label class="form-label">WhatsApp*</label><input type="tel" name="phone" class="form-control" value="+62" required></div>                
+                <div class="mb-4"><label class="form-label">Permintaan Khusus<span style="font-size: 0.7rem; font-weight: 400; color: #aaa; text-transform: none; margin-left: 5px;">(Sesuai ketersediaan)</span></label><textarea name="request" class="form-control" rows="2" placeholder="Contoh : Birthday Surprise..."></textarea></div>
                 <button type="button" class="btn-primary-custom" onclick="validateStep2()">KONFIRMASI PESANAN</button>
             </div>
 
@@ -98,13 +103,35 @@
                 <a href="javascript:void(0)" style="color:#888; text-decoration:none; font-size:0.85rem;" onclick="goToStep(2)">&larr; EDIT DATA</a>
                 <h5 class="fw-bold mb-3">Review Reservasi</h5>
                 <div class="p-3 bg-light rounded-3 mb-3" id="finalSummary"></div>
+
                 <div class="text-center border rounded-3 p-3 mb-3 bg-white">
-                    <p class="small fw-bold text-muted mb-2">SCAN QRIS UNTUK BAYAR</p>
-                    <img id="qrisImg" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ASTANARASA" class="mb-2 border p-2 shadow-sm">
-                    <div class="mb-2"><button type="button" class="btn btn-sm btn-outline-dark" onclick="downloadQR()">💾 Download QRIS</button></div>
-                    <h5 class="fw-bold text-danger" id="totalBayarText"></h5>
+                    <p class="small fw-bold text-muted mb-3">PILIH METODE PEMBAYARAN</p>
+                    <ul class="nav nav-pills mb-3 justify-content-center" id="pills-tab" role="tablist">
+                        <li class="nav-item"><button class="nav-link btn-sm" id="tab-qris" data-bs-toggle="pill" data-bs-target="#pay-qris" type="button" disabled style="opacity: 0.5; cursor: not-allowed;">QRIS (Off)</button></li>
+                        <li class="nav-item"><button class="nav-link active btn-sm" id="tab-va" data-bs-toggle="pill" data-bs-target="#pay-va" type="button">Transfer VA</button></li>
+                    </ul>
+                    
+                    <div class="tab-content border-top pt-3">
+                        <div class="tab-pane fade" id="pay-qris">
+                            <img id="qrisImg" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ASTANARASA" class="mb-2 border p-2 shadow-sm">
+                            <div class="mb-2"><button type="button" class="btn btn-sm btn-outline-dark" style="font-size: 10px;" onclick="downloadQR()">💾 Download QRIS</button></div>
+                        </div>
+                        <div class="tab-pane fade show active" id="pay-va">
+                            <div class="p-2 bg-light rounded border mb-2">
+                                <p class="mb-1 text-muted" style="font-size: 10px; font-weight: bold;">BANK MANDIRI (VA)</p>
+                                <h5 class="fw-bold mb-1" id="vaNumber">889081234567890</h5>
+                                <button type="button" class="btn btn-sm btn-dark py-0" style="font-size: 10px;" onclick="copyVA()">📋 Salin No. VA</button>
+                            </div>
+                            <p style="font-size: 9px; color: #888;">*Pastikan nominal transfer sesuai dengan total bayar</p>
+                        </div>
+                    </div>
+                    <h5 class="fw-bold text-danger mt-3" id="totalBayarText"></h5>
                 </div>
-                <div class="mb-4"><label class="form-label text-danger">Upload Bukti Pembayaran*</label><input type="file" id="buktiBayar" class="form-control" accept="image/*" required onchange="document.getElementById('submitBtn').disabled=false"></div>
+
+                <div class="mb-4">
+                    <label class="form-label text-danger">Upload Bukti Pembayaran*</label>
+                    <input type="file" id="buktiBayar" class="form-control" accept="image/*" required onchange="document.getElementById('submitBtn').disabled=false">
+                </div>
                 <button type="submit" class="btn-primary-custom" id="submitBtn" disabled>KIRIM RESERVASI</button>
             </div>
         </form>
@@ -115,15 +142,46 @@
     <div class="modal-dialog modal-dialog-centered modal-portrait">
         <div class="modal-content text-dark">
             <div class="modal-header py-2"><h6 class="modal-title fw-bold">Syarat & Ketentuan</h6></div>
-            <div class="modal-body py-3" style="font-size: 0.75rem;">
-                <p class="mb-1">1. Reservasi sah jika bukti bayar terupload.</p>
-                <p class="mb-1">2. Pembatalan < 24 jam dianggap hangus.</p>
-                <p class="mb-1">3. Datang 15 menit sebelum jadwal.</p>
-                <p class="mb-1">4. Toleransi keterlambatan 30 menit.</p>
+            <div class="modal-body py-3" style="font-size: 0.55rem;">
+                <p class="mb-1">1. Unggah bukti pembayaran untuk konfirmasi.</p>
+                <p class="mb-1">2. Hadir 15 menit sebelum jadwal.</p>
+                <p class="mb-1">3. Toleransi keterlambatan 30 menit.</p>
+                <p class="mb-1">4. Pemesanan slice cake birthday, konfirmasi langsung dikasir.</p>
+                <p class="mb-1">5. Dilarang membawa masuk atau membawa keluar makanan/minuman.</p>
+                <p class="mb-1">6. Dilarang membawa banner atau umbul-umbul kegiatan.</p>
+                <p class="mb-1">7. Pembatalan kurang dari 24 jam dianggap hangus.</p>
+                <p class="mb-1">8. Dilarang melakukan aktivitas yang mengganggu tamu lain.</p>
             </div>
             <div class="modal-footer flex-column py-2">
-                <div class="form-check w-100 mb-2"><input class="form-check-input" type="checkbox" id="agreeCheck" onchange="document.getElementById('btnAgree').disabled = !this.checked"><label class="form-check-label" style="font-size:0.7rem;">Saya Setuju</label></div>
+                <div class="form-check w-100 mb-2">
+                    <input class="form-check-input" type="checkbox" id="agreeCheck" onchange="document.getElementById('btnAgree').disabled = !this.checked">
+                    <label class="form-check-label" style="font-size:0.7rem;">Saya Setuju</label>
+                </div>
                 <button type="button" class="btn btn-primary btn-sm w-100" id="btnAgree" disabled onclick="goToStep(2); bootstrap.Modal.getInstance(document.getElementById('termsModal')).hide();">LANJUTKAN</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="rescheduleModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered text-dark">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Reschedule Reservasi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="resStep1">
+                    <label class="form-label">Nomor Reservasi (Booking ID)</label>
+                    <input type="text" id="resID" class="form-control mb-3" placeholder="Contoh: 2002-05-ABC">
+                    <button type="button" class="btn btn-primary w-100 fw-bold" onclick="findReservation()">CEK DATA</button>
+                </div>
+                <div id="resStep2" class="hidden">
+                    <div id="resInfo" class="alert alert-info py-2 mb-3" style="font-size:0.8rem;"></div>
+                    <label class="form-label">Pilih Tanggal Baru*</label>
+                    <input type="date" id="newDate" class="form-control mb-3">
+                    <button type="button" class="btn btn-success w-100 fw-bold" onclick="submitReschedule()">SIMPAN PERUBAHAN</button>
+                </div>
             </div>
         </div>
     </div>
@@ -138,92 +196,140 @@
     const menuData = { "2026-02-19": "Menu A", "2026-02-20": "Menu B", "2026-02-21": "Menu C", "2026-02-22": "Menu D", "2026-02-23": "Menu E", "2026-02-24": "Menu F", "2026-02-25": "Menu G", "2026-02-26": "Menu H", "2026-02-27": "Menu I", "2026-02-28": "Menu J", "2026-03-01": "Menu A", "2026-03-02": "Menu B", "2026-03-03": "Menu C", "2026-03-04": "Menu D", "2026-03-05": "Menu E", "2026-03-06": "Menu F", "2026-03-07": "Menu G", "2026-03-08": "Menu H", "2026-03-09": "Menu I", "2026-03-10": "Menu J", "2026-03-11": "Menu A", "2026-03-12": "Menu B", "2026-03-13": "Menu C", "2026-03-14": "Menu D", "2026-03-15": "Menu E", "2026-03-16": "Menu F", "2026-03-17": "Menu G", "2026-03-18": "Menu H", "2026-03-19": "Menu I" };
     const menuImages = { "Menu A": "asset/img/menu-a.jpg", "Menu B": "asset/img/menu-b.jpg", "Menu C": "asset/img/menu-c.jpg", "Menu D": "asset/img/menu-d.jpg", "Menu E": "asset/img/menu-e.jpg", "Menu F": "asset/img/menu-f.jpg", "Menu G": "asset/img/menu-g.jpg", "Menu H": "asset/img/menu-h.jpg", "Menu I": "asset/img/menu-i.jpg", "Menu J": "asset/img/menu-j.jpg" };
 
-    // FITUR: INFO KUOTA MINIMALIS & CEPAT
+    let currentDewasaPrice = 150000; 
+    const hargaAnak = 80000;
+
+    // FUNGSI RESCHEDULE DENGAN PRICE-LOCK
+    const resModal = new bootstrap.Modal(document.getElementById('rescheduleModal'));
+    function showRescheduleModal() { resModal.show(); }
+
+    async function findReservation() {
+        const id = document.getElementById('resID').value;
+        if(!id) return alert("Masukkan ID Reservasi!");
+        
+        document.getElementById('loader').style.display = 'flex';
+        try {
+            const resp = await fetch(SCRIPT_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: "findBooking", bookingID: id }) 
+            });
+            const data = await resp.json();
+            
+            if(data.found) {
+                const oldDateObj = new Date(data.oldDateRaw);
+                const isPromo = (oldDateObj >= new Date("2026-02-20") && oldDateObj <= new Date("2026-03-02"));
+                
+                const dateInput = document.getElementById('newDate');
+                if(isPromo) {
+                    dateInput.min = "2026-02-20";
+                    dateInput.max = "2026-03-02";
+                    document.getElementById('resInfo').innerHTML = `Halo <b>${data.name}</b>, Paket Anda: <b>Promo</b>. Pilih tanggal baru (20 Feb - 02 Mar).`;
+                } else {
+                    dateInput.min = "2026-03-03";
+                    dateInput.max = "2026-03-19";
+                    document.getElementById('resInfo').innerHTML = `Halo <b>${data.name}</b>, Paket Anda: <b>Normal</b>. Pilih tanggal baru (03 Mar - 19 Mar).`;
+                }
+                document.getElementById('resStep1').classList.add('hidden');
+                document.getElementById('resStep2').classList.remove('hidden');
+            } else { alert("Data tidak ditemukan."); }
+        } catch (e) { alert("Error koneksi."); }
+        document.getElementById('loader').style.display = 'none';
+    }
+
+    async function submitReschedule() {
+        const id = document.getElementById('resID').value;
+        const newD = document.getElementById('newDate').value;
+        if(!newD) return alert("Pilih tanggal!");
+        
+        document.getElementById('loader').style.display = 'flex';
+        try {
+            await fetch(SCRIPT_URL, { 
+                method: 'POST', 
+                body: JSON.stringify({ action: "updateDate", bookingID: id, newDate: newD }) 
+            });
+            alert("Reschedule Berhasil!");
+            window.location.reload();
+        } catch (e) { alert("Gagal update."); }
+    }
+
+    function calculateTotal() {
+        const dewasa = parseInt(document.getElementById('paxDewasa').value) || 0;
+        const anak = parseInt(document.getElementById('paxAnak').value) || 0;
+        const totalHarga = (dewasa * currentDewasaPrice) + (anak * hargaAnak);
+        const totalPax = dewasa + anak;
+
+        window.currentTotalHarga = totalHarga;
+        window.currentPaxDetail = `${dewasa} Dewasa, ${anak} Anak`;
+        document.getElementById('paxTotal').value = totalPax; 
+        
+        if(document.getElementById('totalBayarText')) {
+            document.getElementById('totalBayarText').innerText = "TOTAL: Rp " + totalHarga.toLocaleString('id-ID');
+        }
+    }
+    
+    document.getElementById('paxDewasa').addEventListener('input', calculateTotal);
+    document.getElementById('paxAnak').addEventListener('input', calculateTotal);
+
     document.getElementById('datePicker').addEventListener('change', async function() {
         const val = this.value;
         if(!val) return;
-    
-        let qBox = document.getElementById('qBox');
-        if(!qBox) {
-            document.body.insertAdjacentHTML('beforeend', 
-                '<div id="qBox" class="quota-badge-center">' +
-                '<h6>Status Ketersediaan</h6>' +
-                '<h2 id="qCount">Memeriksa...</h2>' +
-                '<div id="qHint" style="font-size:9px; margin-top:10px; color:#aaa; display:none;">(Klik untuk menutup)</div>' +
-                '</div>'
-            );
-            qBox = document.getElementById('qBox');
-        }
 
-        // 1. NONAKTIFKAN KLIK SAAT MEMERIKSA
-        qBox.onclick = null; 
-        qBox.style.cursor = "default";
-        document.getElementById('qHint').style.display = "none";
-
-        document.getElementById('qCount').innerText = "Sedang memeriksa...";
-        document.getElementById('qCount').style.color = "#28a745";
-        document.getElementById('qCount').style.fontSize = "1rem";
-        qBox.style.display = 'block';
-
-        try {
-            const resp = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "checkQuota", date: val }) });
-            const result = await resp.json();
-            const used = result.used || 0;
-            const max = 500;
-            const remaining = max - used;
-        
-            const qCountEl = document.getElementById('qCount');
-        
-            if (remaining <= 0) {
-                qCountEl.innerText = "FULL BOOK";
-                qCountEl.style.color = "#ff4444";
-                document.getElementById('btnNext1').disabled = true;
-            } else {
-                qCountEl.innerText = `${remaining} Pax Tersedia`;
-                qCountEl.style.color = "#28a745";
-                document.getElementById('btnNext1').disabled = false;
-            }
-
-            // 2. AKTIFKAN KLIK HANYA SETELAH DATA MUNCUL
-            qBox.style.cursor = "pointer";
-            document.getElementById('qHint').style.display = "block";
-            qBox.onclick = function() {
-                this.style.display = 'none';
-            };
-        
-            // Timer cadangan diperpendek karena user sudah bisa klik sendiri
-            setTimeout(() => { qBox.style.display = 'none'; }, 60000);        
-        } catch (e) { 
-            document.getElementById('qCount').innerText = "Error Koneksi";
-            qBox.style.cursor = "pointer";
-            qBox.onclick = () => qBox.style.display = 'none';
-            setTimeout(() => { qBox.style.display = 'none'; }, 2000);
-        }
-
-        // Update Harga & Menu (tetap sama)
+        window.currentTanggalCantik = getTanggalCantik(val);
         const selDate = new Date(val);
-        currentPrice = (selDate >= new Date("2026-02-20") && selDate <= new Date("2026-03-02")) ? 100000 : 150000;
-        document.getElementById('priceInfo').innerText = "Harga: Rp " + currentPrice.toLocaleString('id-ID') + " / Pax";
+        const startDate = new Date("2026-02-20");
+        const endDate = new Date("2026-03-02");
+        currentDewasaPrice = (selDate >= startDate && selDate <= endDate) ? 100000 : 150000;
+        
+        document.getElementById('priceInfo').innerText = `Dewasa: Rp ${currentDewasaPrice.toLocaleString('id-ID')} | Anak: Rp 80.000`;
+        calculateTotal();
+
         if(menuData[val]) {
             document.getElementById('menuTitle').innerText = menuData[val];
             document.getElementById('menuDisplay').src = menuImages[menuData[val]];
             document.getElementById('menuContainer').classList.remove('hidden');
         }
+
+        let qBox = document.getElementById('qBox') || createQuotaBox();
+        document.getElementById('qCount').innerText = "Memeriksa...";
+        qBox.style.display = 'block';
+
+        try {
+            const resp = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: "checkQuota", date: val }) });
+            const result = await resp.json();
+            const remaining = 500 - (result.used || 0);
+            
+            if (remaining <= 0) {
+                document.getElementById('qCount').innerText = "FULL BOOK";
+                document.getElementById('qCount').style.color = "#ff4444";
+                document.getElementById('btnNext1').disabled = true;
+            } else {
+                document.getElementById('qCount').innerText = "Pax Tersedia";
+                document.getElementById('qCount').style.color = "#28a745";
+                document.getElementById('btnNext1').disabled = false;
+            }
+            document.getElementById('qHint').style.display = "block";
+        } catch (e) {
+            document.getElementById('qCount').innerText = "Koneksi Bermasalah";
+            document.getElementById('btnNext1').disabled = false; 
+        }
     });
 
-    // Perbaikan format tanggal di tiket (Fitur 2)
+    function createQuotaBox() {
+        document.body.insertAdjacentHTML('beforeend', '<div id="qBox" class="quota-badge-center" onclick="this.style.display=\'none\'"><h6>Status Ketersediaan</h6><h2 id="qCount"></h2><div id="qHint" style="font-size:9px; margin-top:10px; color:#aaa; display:none;">(Klik untuk menutup)</div></div>');
+        return document.getElementById('qBox');
+    }
+
     function getTanggalCantik(dateStr) {
         if(!dateStr) return "-";
         const d = new Date(dateStr);
-        const bulan = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+        const bulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
         return d.getDate() + " " + bulan[d.getMonth()] + " " + d.getFullYear();
     }
 
-    // LANGSUNG KE SYARAT & KETENTUAN
     function checkQuotaAndTerms() {
         const date = document.getElementById('datePicker').value;
-        const pax = document.getElementById('paxInput').value;
-        if(!date || !pax) return alert("Mohon lengkapi Tanggal dan Jumlah Orang!");
+        const totalPax = parseInt(document.getElementById('paxTotal').value) || 0;
+        if(!date || totalPax === 0) return alert("Mohon pilih Tanggal dan Jumlah Orang!");
         new bootstrap.Modal(document.getElementById('termsModal')).show();
     }
 
@@ -236,115 +342,121 @@
         } catch (e) { window.open(addr, '_blank'); }
     }
 
+    function copyVA() {
+        const vaNum = document.getElementById('vaNumber').innerText;
+        const btn = document.querySelector('[onclick="copyVA()"]');
+        navigator.clipboard.writeText(vaNum).then(() => {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "✅ Berhasil Disalin";
+            btn.classList.replace('btn-dark', 'btn-success');
+            setTimeout(() => { btn.innerHTML = originalText; btn.classList.replace('btn-success', 'btn-dark'); }, 2000);
+        });
+    }
+
     function showLightbox() { document.getElementById('lightboxImg').src = document.getElementById('menuDisplay').src; new bootstrap.Modal(document.getElementById('imgPreviewModal')).show(); }
 
     function goToStep(step) {
-        document.querySelectorAll('[id^="step"]').forEach(el => { if(!el.id.startsWith('stepIcon')) el.classList.add('hidden'); });
+        document.querySelectorAll('[id^="step"]').forEach(el => { if(el.id.length <= 5) el.classList.add('hidden'); });
         document.getElementById('step' + step).classList.remove('hidden');
         document.querySelectorAll('.step-item').forEach((it, idx) => { if(idx < step) it.classList.add('active'); else it.classList.remove('active'); });
     }
 
     function validateStep2() {
         const f = new FormData(document.getElementById('reservationForm'));
-        const total = parseInt(f.get('pax')) * currentPrice;
-        document.getElementById('totalBayarText').innerText = "TOTAL: Rp " + total.toLocaleString('id-ID');
+        document.getElementById('totalBayarText').innerText = "TOTAL: Rp " + window.currentTotalHarga.toLocaleString('id-ID');
         document.getElementById('finalSummary').innerHTML = `
-            <div class="summary-item"><span>Nama</span><b>${f.get('title')} ${f.get('fname')}</b></div>
-            <div class="summary-item"><span>Waktu</span><b>${f.get('date')} / ${f.get('time')} WIB</b></div>
-            <div class="summary-item"><span>Pax</span><b>${f.get('pax')} Orang</b></div>`;
+            <div class="summary-item"><span>Nama</span><b>${f.get('title')} ${f.get('fname')} ${f.get('lname')}</b></div>
+            <div class="summary-item"><span>Waktu</span><b>${window.currentTanggalCantik} / 17:45 - 20:00 WIB</b></div>
+            <div class="summary-item"><span>Rincian</span><b>${window.currentPaxDetail}</b></div>
+        `;
         goToStep(3);
     }
 
     document.getElementById('reservationForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        const btn = document.getElementById('submitBtn'); btn.innerText = "MENGIRIM..."; btn.disabled = true;
+        const btn = document.getElementById('submitBtn'); 
+        btn.innerText = "MENGIRIM..."; btn.disabled = true;
+
         const dateVal = document.getElementById('datePicker').value;
         const d = new Date(dateVal);
-        const randomChars = Array.from({length: 3}, () => 
-            String.fromCharCode(65 + Math.floor(Math.random() * 26))
-        ).join('');
-        const bookingID = `${("0"+d.getDate()).slice(-2)}${("0"+(d.getMonth()+1)).slice(-2)}-${document.getElementById('paxInput').value.padStart(2,'0')}-${randomChars}`;
+        const randomChars = Array.from({length: 3}, () => String.fromCharCode(65 + Math.floor(Math.random() * 26))).join('');
+        const totalPax = document.getElementById('paxTotal').value;
+        const bookingID = `${("0"+d.getDate()).slice(-2)}${("0"+(d.getMonth()+1)).slice(-2)}-${totalPax.padStart(2,'0')}-${randomChars}`;
+        
         const f = new FormData(e.target);
+        const fixedTime = "17:45 - 20:00";
 
         const successHTML = `
             <div id="successOverlay">
-                <div id="captureArea" class="ticket-card" style="max-width: 380px; border: none; background: #fff; border-radius:15px; height: auto; overflow:visible; text-align:center;">
-                    <div style="background:#28a745; color:#fff; padding:20px;">
-                        <h4 style="margin:0; font-weight:800;">RESERVASI BERHASIL!</h4>
-                    </div>
+                <div id="captureArea" class="ticket-card" style="max-width: 380px; border: none; background: #fff; border-radius:0px; text-align:center;">
+                    <div style="background:#28a745; color:#fff; padding:20px;"><h4 style="margin:0; font-weight:800;">RESERVASI BERHASIL!</h4></div>
                     <div style="padding:25px; background:#fff; color:#333;">
                         <p style="margin:0; color:#888; font-size:11px; font-weight:bold;">NOMOR RESERVASI</p>
                         <h2 style="color:#f37021; font-weight:800; letter-spacing:2px; margin:5px 0;">${bookingID}</h2>
-                        
-                        <div style="margin: 3px 0;">
-                            <img src="https://quickchart.io/qr?text=${bookingID}&size=150" 
+                        <div style="margin: 10px auto; width: 150px; height: 150px; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; background: #fff; overflow: hidden;">
+                            <img src="https://quickchart.io/qr?text=${bookingID}&size=300" 
                                  crossorigin="anonymous" 
-                                 style="width: 140px; height: 140px; border: 1px solid #eee; padding: 0px;">
+                                 style="width: 100%; height: 100%; object-fit: contain; padding: 5px;">
+                        </div>                        
+                        <hr style="border-top:2px dashed #eee; margin: 15px 0;">
+                        <div style="text-align:left; font-size:13px; line-height:2; margin-bottom: 20px;">
+                            <div style="display:flex; justify-content:space-between;"><span>Nama:</span><b>${f.get('title')} ${f.get('fname')} ${f.get('lname') || ""}</b></div>
+                            <div style="display:flex; justify-content:space-between;"><span>Tanggal:</span><b>${window.currentTanggalCantik}</b></div>
+                            <div style="display:flex; justify-content:space-between;"><span>Waktu:</span><b>${fixedTime} WIB</b></div>
+                            <div style="display:flex; justify-content:space-between;"><span>Jumlah:</span><b>${window.currentPaxDetail}</b></div>
                         </div>
-
-                        <hr style="border-top:2px dashed #eee;">
-                        
-                        <div style="text-align:left; font-size:13px; line-height:2.2; margin-bottom: 20px;">                            
-                            <div style="display:flex; justify-content:space-between;"><span>Nama:</span><b>${f.get('title')} ${f.get('fname')} ${f.get('lname') || ""}</b></div>                            
-                            <div style="display:flex; justify-content:space-between;"><span>Tanggal:</span><b>${getTanggalCantik(f.get('date'))}</b></div>
-                            <div style="display:flex; justify-content:space-between;"><span>Waktu:</span><b>${f.get('time')} WIB</b></div>
-                            <div style="display:flex; justify-content:space-between;"><span>Jumlah:</span><b>${f.get('pax').padStart(2, '0')} Orang</b></div>
-                        </div>
-                        
                         <div style="background:#f9f9f9; border: 1px solid #eee; border-radius: 8px; padding: 12px; text-align: left;">
                             <p style="margin:0 0 5px 0; font-size:9px; font-weight:bold; color:#555; text-transform:uppercase;">Syarat & Ketentuan (Disetujui):</p>
                             <ul style="margin:0; padding-left:15px; font-size:8px; color:#777; line-height:1.4;">
-                                <li>Bukti bayar valid adalah syarat sah reservasi.</li>
-                                <li>Pembatalan < 24 jam dianggap hangus.</li>
-                                <li>Datang 15 menit sebelum jadwal.</li>
-                                <li>Toleransi keterlambatan maksimal 30 menit.</li>
+                                <li>Unggah bukti pembayaran untuk konfirmasi.</li><li>Hadir 15 menit sebelum jadwal.</li><li>Toleransi keterlambatan 30 menit.</li><li>Pemesanan slice cake birthday, konfirmasi langsung dikasir.</li><li>Dilarang membawa masuk/keluar makanan.</li><li>Dilarang membawa banner/umbul-umbul.</li><li>Pembatalan < 24 jam hangus.</li><li>Dilarang mengganggu kenyamanan tamu lain.</li>
                             </ul>
-                            <div style="margin-top:8px; border-top:1px solid #eee; pt-5px; text-align:right;">
-                                <span style="font-size:8px; color:#28a745; font-weight:bold;">&#10003; CUSTOMER TELAH MENYETUJUI</span>
-                            </div>
+                            <div style="margin-top:8px; border-top:1px solid #eee; padding-top:5px; text-align:right;"><span style="font-size:8px; color:#28a745; font-weight:bold;">&#10003; CUSTOMER TELAH MENYETUJUI</span></div>
                         </div>
                     </div>
                 </div>
                 <div class="mt-4"><button id="dlAction" class="btn btn-light fw-bold">💾 DOWNLOAD TIKET (PNG)</button></div>
             </div>`;
+        
         document.body.insertAdjacentHTML('beforeend', successHTML);
 
-        await new Promise(resolve => setTimeout(resolve, 800));
+        try {
+            await new Promise(r => setTimeout(r, 1000));
+            const canvas = await html2canvas(document.querySelector("#captureArea"), { scale: 2, useCORS: true });
+            const tiketBase64 = canvas.toDataURL("image/png").split(',')[1];
 
-        const canvas = await html2canvas(document.querySelector("#captureArea"), { 
-            scale: 2,
-            useCORS: true,
-            allowTaint: false,
-            backgroundColor: null, // Membuat background luar card transparan
-            scrollX: 0,
-            scrollY: -window.scrollY, // Menghindari offset jika halaman di-scroll
-            onclone: (clonedDoc) => {
-                // Memastikan elemen di clone memiliki tinggi otomatis sebelum difoto
-                clonedDoc.getElementById("captureArea").style.height = "auto";
-            }
-        });
-        
-        const tiketBase64 = canvas.toDataURL("image/png").split(',')[1];
-        
-        document.getElementById('dlAction').onclick = () => {
-            const link = document.createElement('a'); link.download = `Tiket-${bookingID}.png`; link.href = canvas.toDataURL("image/png"); link.click();
-            setTimeout(() => window.location.reload(), 1200);
-        };
+            // FUNGSI DOWNLOAD + AUTO RELOAD
+            document.getElementById('dlAction').onclick = function() {
+                const link = document.createElement('a');
+                link.download = `Tiket-${bookingID}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+                
+                // Efek visual tombol saat reload dimulai
+                this.innerText = "MENGUNDUH... REFRESH DALAM 3 DETIK";
+                this.className = "btn btn-secondary disabled fw-bold";
+                
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
+            };
 
-        const file = document.getElementById('buktiBayar').files[0];
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-            fetch(SCRIPT_URL, { 
-                method: 'POST', 
-                body: JSON.stringify({
-                    buktiBase64: evt.target.result.split(',')[1], tiketBase64: tiketBase64, bookingID: bookingID,
-                    date: f.get('date'), pax: f.get('pax'), time: f.get('time'), title: f.get('title'),
-                    fname: f.get('fname'), lname: f.get('lname') || "", phone: f.get('phone'),
-                    request: f.get('request') || "", totalHarga: parseInt(f.get('pax')) * currentPrice, menuName: menuData[dateVal]
-                })
-            });
-        };
-        reader.readAsDataURL(file);
+            const file = document.getElementById('buktiBayar').files[0];
+            const reader = new FileReader();
+            reader.onload = async function(evt) {
+                const payload = {
+                    buktiBase64: evt.target.result.split(',')[1], 
+                    tiketBase64: tiketBase64, 
+                    bookingID: bookingID,
+                    date: f.get('date'), pax: window.currentPaxDetail,
+                    totalHarga: window.currentTotalHarga, time: fixedTime, 
+                    title: f.get('title'), fname: f.get('fname'), 
+                    lname: f.get('lname') || "", phone: f.get('phone'),
+                    request: f.get('request') || "", menuName: menuData[dateVal]
+                };
+                await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+            };
+            reader.readAsDataURL(file);
+        } catch (err) { alert("Terjadi kesalahan."); }
     });
 </script>
 </body>
