@@ -406,6 +406,73 @@
     // ===== DISABLED DATES FEATURE =====
     let disabledDatesSet = new Set();
     
+    // ===== CHECK EVENT ARCHIVE STATUS =====
+    async function checkAndBlockArchivedEvent() {
+        if (!SS_ID) {
+            console.log('❌ Tidak ada ssId, skip check archive');
+            return;
+        }
+        
+        try {
+            console.log('🔍 Checking archive status untuk event:', SS_ID);
+            const checkUrl = new URL(SCRIPT_URL);
+            checkUrl.searchParams.set('action', 'checkEventArchiveStatus');
+            checkUrl.searchParams.set('ssId', SS_ID);
+            
+            const response = await fetch(checkUrl.toString(), { method: 'GET' });
+            const result = await response.json();
+            
+            console.log('📋 Archive status result:', result);
+            
+            if (result.isArchived || result.status === 'archived') {
+                console.log('🚫 Event sudah di-archive, disable form');
+                
+                // Tampil banner merah warning
+                const bannerHTML = `
+                    <div class="alert alert-danger" id="archivedBanner" style="margin: 15px; border-radius: 10px; padding: 20px; text-align: center; font-weight: bold;">
+                        <h4 style="color: #dc3545; margin-bottom: 10px;">⛔ EVENT DITUTUP</h4>
+                        <p style="margin: 0; color: #721c24; font-size: 1rem;">
+                            Event "${result.namaEvent || EVENT_NAME}" sudah ditutup dan tidak menerima reservasi baru.
+                        </p>
+                        <p style="margin: 10px 0 0 0; color: #721c24; font-size: 0.9rem;">
+                            Mohon hubungi admin untuk informasi lebih lanjut.
+                        </p>
+                    </div>
+                `;
+                
+                // Inject banner di atas form
+                const mainCard = document.querySelector('.main-card');
+                if (mainCard) {
+                    mainCard.innerHTML = bannerHTML + mainCard.innerHTML;
+                }
+                
+                // Disable semua form input
+                const formInputs = document.querySelectorAll('#reservationForm input, #reservationForm select, #reservationForm textarea, #reservationForm button');
+                formInputs.forEach(el => {
+                    el.disabled = true;
+                    el.style.opacity = '0.5';
+                    el.style.cursor = 'not-allowed';
+                });
+                
+                // Hide content area untuk step 2 dan 3
+                document.getElementById('step2').classList.add('hidden');
+                document.getElementById('step3').classList.add('hidden');
+                
+                // Disable stepper
+                document.querySelector('.stepper-wrapper').style.opacity = '0.3';
+                
+                return false; // Event archived
+            } else {
+                console.log('✅ Event aktif, allow reservasi');
+                return true; // Event active
+            }
+        } catch (err) {
+            console.error('⚠️ Error checking archive status:', err);
+            // Jika ada error, allow reservasi (safe default)
+            return true;
+        }
+    }
+    
     async function loadDisabledDates() {
         try {
             const url = new URL(SCRIPT_URL);
@@ -552,6 +619,10 @@
 
     // Setup Booking ID input formatter
     document.addEventListener('DOMContentLoaded', function() {
+        console.log('🎯 DOMContentLoaded - Checking event archive status...');
+        // Check apakah event sudah di-archive
+        checkAndBlockArchivedEvent();
+        
         console.log('🎯 DOMContentLoaded - Starting loadDisabledDates...');
         // Load disabled dates on init
         loadDisabledDates();
