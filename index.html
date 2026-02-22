@@ -348,7 +348,55 @@
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    // ===== READ URL PARAMETERS =====
+    // Read ssId dan event name dari URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const SS_ID = urlParams.get('ssId') || '';
+    const EVENT_NAME = urlParams.get('event') || 'Event';
+    
+    console.log('🔧 Initialize dengan ssId:', SS_ID);
+    console.log('📌 Event name:', EVENT_NAME);
+    
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwS-VBaABfCN1-aY9g-0BYC3Sxp9pKPrkqlZnFs2qT7K9rzFINamsrJl_uJPonvkS6o2Q/exec'; 
+    
+    // ===== OVERRIDE FETCH UNTUK INJECT ssId =====
+    const originalFetch = window.fetch;
+    window.fetch = function(url, options = {}) {
+      let finalUrl = url;
+      let finalOptions = {...options};
+      
+      const urlStr = typeof url === 'string' ? url : (url && url.toString ? url.toString() : String(url));
+      
+      // Jika fetch ke SCRIPT_URL dan ada ssId, inject ssId ke URL parameter
+      if (urlStr.includes('script.google.com') && SS_ID) {
+        try {
+          const urlObj = new URL(urlStr);
+          urlObj.searchParams.set('ssId', SS_ID);
+          finalUrl = urlObj.toString();
+          console.log('✅ Fetch URL setelah inject ssId:', finalUrl);
+        } catch (e) {
+          console.warn('⚠️ Gagal parse URL:', e);
+        }
+      }
+      
+      // Untuk POST request, inject ssId ke body jika JSON
+      if (finalOptions && finalOptions.method === 'POST' && finalOptions.body && typeof finalOptions.body === 'string') {
+        try {
+          const bodyObj = JSON.parse(finalOptions.body);
+          if (SS_ID && !bodyObj.ssId) {
+            bodyObj.ssId = SS_ID;
+            finalOptions.body = JSON.stringify(bodyObj);
+            console.log('✅ POST body setelah inject ssId:', bodyObj);
+          }
+        } catch (e) {
+          // Jika body bukan JSON, biarkan saja
+          console.warn('⚠️ Body bukan JSON, skip injection');
+        }
+      }
+      
+      return originalFetch.call(this, finalUrl, finalOptions);
+    };
+    
     const menuData = { "2026-02-19": "Menu A", "2026-02-20": "Menu B", "2026-02-21": "Menu C", "2026-02-22": "Menu D", "2026-02-23": "Menu E", "2026-02-24": "Menu F", "2026-02-25": "Menu G", "2026-02-26": "Menu H", "2026-02-27": "Menu I", "2026-02-28": "Menu J", "2026-03-01": "Menu A", "2026-03-02": "Menu B", "2026-03-03": "Menu C", "2026-03-04": "Menu D", "2026-03-05": "Menu E", "2026-03-06": "Menu F", "2026-03-07": "Menu G", "2026-03-08": "Menu H", "2026-03-09": "Menu I", "2026-03-10": "Menu J", "2026-03-11": "Menu A", "2026-03-12": "Menu B", "2026-03-13": "Menu C", "2026-03-14": "Menu D", "2026-03-15": "Menu E", "2026-03-16": "Menu F", "2026-03-17": "Menu G", "2026-03-18": "Menu H", "2026-03-19": "Menu I" };
     const menuImages = { "Menu A": "asset/img/menu-a.jpg", "Menu B": "asset/img/menu-b.jpg", "Menu C": "asset/img/menu-c.jpg", "Menu D": "asset/img/menu-d.jpg", "Menu E": "asset/img/menu-e.jpg", "Menu F": "asset/img/menu-f.jpg", "Menu G": "asset/img/menu-g.jpg", "Menu H": "asset/img/menu-h.jpg", "Menu I": "asset/img/menu-i.jpg", "Menu J": "asset/img/menu-j.jpg" };
     const formatIDR = (val) => "Rp " + Number(val).toLocaleString('id-ID');
