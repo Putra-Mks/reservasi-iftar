@@ -410,7 +410,7 @@
     async function checkAndBlockArchivedEvent() {
         if (!SS_ID) {
             console.log('❌ Tidak ada ssId, skip check archive');
-            return;
+            return true; // Active by default
         }
         
         try {
@@ -419,10 +419,15 @@
             checkUrl.searchParams.set('action', 'checkEventArchiveStatus');
             checkUrl.searchParams.set('ssId', SS_ID);
             
-            const response = await fetch(checkUrl.toString(), { method: 'GET' });
-            const result = await response.json();
+            console.log('📍 Check URL:', checkUrl.toString());
             
-            console.log('📋 Archive status result:', result);
+            const response = await fetch(checkUrl.toString(), { method: 'GET' });
+            const responseText = await response.text();
+            
+            console.log('📍 Raw response:', responseText);
+            
+            const result = JSON.parse(responseText);
+            console.log('📋 Parsed result:', result);
             
             if (result.isArchived || result.status === 'archived') {
                 console.log('🚫 Event sudah di-archive, disable form');
@@ -446,20 +451,25 @@
                     mainCard.innerHTML = bannerHTML + mainCard.innerHTML;
                 }
                 
-                // Disable semua form input
-                const formInputs = document.querySelectorAll('#reservationForm input, #reservationForm select, #reservationForm textarea, #reservationForm button');
+                // Disable semua form input dan modals
+                const formInputs = document.querySelectorAll('input, select, textarea, button');
                 formInputs.forEach(el => {
-                    el.disabled = true;
-                    el.style.opacity = '0.5';
-                    el.style.cursor = 'not-allowed';
+                    if (el.getAttribute('id') !== 'archivedBanner') {
+                        el.disabled = true;
+                        el.style.opacity = '0.5';
+                        el.style.cursor = 'not-allowed';
+                        el.style.pointerEvents = 'none';
+                    }
                 });
                 
-                // Hide content area untuk step 2 dan 3
+                // Hide semua step dan modal
+                document.getElementById('step1').style.display = 'none';
                 document.getElementById('step2').classList.add('hidden');
                 document.getElementById('step3').classList.add('hidden');
                 
-                // Disable stepper
-                document.querySelector('.stepper-wrapper').style.opacity = '0.3';
+                // Hide stepper
+                const stepper = document.querySelector('.stepper-wrapper');
+                if (stepper) stepper.style.opacity = '0.3';
                 
                 return false; // Event archived
             } else {
@@ -468,6 +478,7 @@
             }
         } catch (err) {
             console.error('⚠️ Error checking archive status:', err);
+            console.error('Stack:', err.stack);
             // Jika ada error, allow reservasi (safe default)
             return true;
         }
@@ -618,10 +629,10 @@
     }
 
     // Setup Booking ID input formatter
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', async function() {
         console.log('🎯 DOMContentLoaded - Checking event archive status...');
-        // Check apakah event sudah di-archive
-        checkAndBlockArchivedEvent();
+        // Check apakah event sudah di-archive (tunggu selesai)
+        await checkAndBlockArchivedEvent();
         
         console.log('🎯 DOMContentLoaded - Starting loadDisabledDates...');
         // Load disabled dates on init
@@ -1598,6 +1609,17 @@
                 try {
                     const resp = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
                     const respText = await resp.text();
+                    
+                    // Parse response untuk check berbagai error
+                    const respObj = JSON.parse(respText);
+                    
+                    if (respObj.message === 'EVENT_ARCHIVED' || respObj.detail === 'Event sudah ditutup dan tidak menerima reservasi baru') {
+                        alert('❌ Event sudah ditutup dan tidak menerima reservasi baru.');
+                        btn.innerText = "KIRIM RESERVASI";
+                        btn.disabled = false;
+                        return;
+                    }
+                    
                     if (respText.includes('DATE_CLOSED')) {
                         alert('❌ Tanggal sudah ditutup untuk reservasi.');
                         btn.innerText = "KIRIM RESERVASI";
