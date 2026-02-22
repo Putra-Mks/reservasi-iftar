@@ -359,6 +359,9 @@
     
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbypKYao9xP2CKlQ2cOiUZJFFTV39EnEfCqVuGindLIPNAFPSfgZ1fKdwG3xtMHZdWg/exec'; 
     
+    // Master Script URL untuk check archive status (kode.gs)
+    const MASTER_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwyWy0hAgi1eABCNGN2lCzuMIAO2teNebCS2o_gjC8MP3Z-1ib6ywQVykrYmf_GQa6eug/exec';
+    
     // ===== OVERRIDE FETCH UNTUK INJECT ssId =====
     const originalFetch = window.fetch;
     window.fetch = function(url, options = {}) {
@@ -415,11 +418,11 @@
         
         try {
             console.log('🔍 Checking archive status untuk event:', SS_ID);
-            const checkUrl = new URL(SCRIPT_URL);
+            const checkUrl = new URL(MASTER_SCRIPT_URL);
             checkUrl.searchParams.set('action', 'checkEventArchiveStatus');
             checkUrl.searchParams.set('ssId', SS_ID);
             
-            console.log('📍 Check URL:', checkUrl.toString());
+            console.log('📍 Check URL (MASTER):', checkUrl.toString());
             
             const response = await fetch(checkUrl.toString(), { method: 'GET' });
             const responseText = await response.text();
