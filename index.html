@@ -243,7 +243,7 @@
                 <p class="mb-2">1. Pembayaran hanya dilakukan via transfer.</p>
                 <p class="mb-2">2. Melakukan pelunasan paling lambat H-1 sebelum acara.</p>
                 <p class="mb-2">3. Unggah bukti pembayaran untuk konfirmasi.</p>                
-                <p class="mb-2">4. Pembatalan, tidak ada pengembalian dana.</p>
+                <p class="mb-2">4. Pembatalan atau pengurangan pax, tidak ada pengembalian dana.</p>
                 <p class="mb-2">5. Umur 0 - 5 tahun tidak dikenakan biaya, 6 - 11 tahun kategori anak.</p>
                 <p class="mb-2">6. Hadir 15 menit sebelum jadwal.</p>
                 <p class="mb-2">7. Toleransi keterlambatan 30 menit.</p>
@@ -348,58 +348,7 @@
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // ===== READ URL PARAMETERS =====
-    // Read ssId dan event name dari URL parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    const SS_ID = urlParams.get('ssId') || '';
-    const EVENT_NAME = urlParams.get('event') || 'Event';
-    
-    console.log('🔧 Initialize dengan ssId:', SS_ID);
-    console.log('📌 Event name:', EVENT_NAME);
-    
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbypKYao9xP2CKlQ2cOiUZJFFTV39EnEfCqVuGindLIPNAFPSfgZ1fKdwG3xtMHZdWg/exec'; 
-    
-    // Master Script URL untuk check archive status (kode.gs)
-    const MASTER_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwyWy0hAgi1eABCNGN2lCzuMIAO2teNebCS2o_gjC8MP3Z-1ib6ywQVykrYmf_GQa6eug/exec';
-    
-    // ===== OVERRIDE FETCH UNTUK INJECT ssId =====
-    const originalFetch = window.fetch;
-    window.fetch = function(url, options = {}) {
-      let finalUrl = url;
-      let finalOptions = {...options};
-      
-      const urlStr = typeof url === 'string' ? url : (url && url.toString ? url.toString() : String(url));
-      
-      // Jika fetch ke SCRIPT_URL dan ada ssId, inject ssId ke URL parameter
-      if (urlStr.includes('script.google.com') && SS_ID) {
-        try {
-          const urlObj = new URL(urlStr);
-          urlObj.searchParams.set('ssId', SS_ID);
-          finalUrl = urlObj.toString();
-          console.log('✅ Fetch URL setelah inject ssId:', finalUrl);
-        } catch (e) {
-          console.warn('⚠️ Gagal parse URL:', e);
-        }
-      }
-      
-      // Untuk POST request, inject ssId ke body jika JSON
-      if (finalOptions && finalOptions.method === 'POST' && finalOptions.body && typeof finalOptions.body === 'string') {
-        try {
-          const bodyObj = JSON.parse(finalOptions.body);
-          if (SS_ID && !bodyObj.ssId) {
-            bodyObj.ssId = SS_ID;
-            finalOptions.body = JSON.stringify(bodyObj);
-            console.log('✅ POST body setelah inject ssId:', bodyObj);
-          }
-        } catch (e) {
-          // Jika body bukan JSON, biarkan saja
-          console.warn('⚠️ Body bukan JSON, skip injection');
-        }
-      }
-      
-      return originalFetch.call(this, finalUrl, finalOptions);
-    };
-    
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwS-VBaABfCN1-aY9g-0BYC3Sxp9pKPrkqlZnFs2qT7K9rzFINamsrJl_uJPonvkS6o2Q/exec'; 
     const menuData = { "2026-02-19": "Menu A", "2026-02-20": "Menu B", "2026-02-21": "Menu C", "2026-02-22": "Menu D", "2026-02-23": "Menu E", "2026-02-24": "Menu F", "2026-02-25": "Menu G", "2026-02-26": "Menu H", "2026-02-27": "Menu I", "2026-02-28": "Menu J", "2026-03-01": "Menu A", "2026-03-02": "Menu B", "2026-03-03": "Menu C", "2026-03-04": "Menu D", "2026-03-05": "Menu E", "2026-03-06": "Menu F", "2026-03-07": "Menu G", "2026-03-08": "Menu H", "2026-03-09": "Menu I", "2026-03-10": "Menu J", "2026-03-11": "Menu A", "2026-03-12": "Menu B", "2026-03-13": "Menu C", "2026-03-14": "Menu D", "2026-03-15": "Menu E", "2026-03-16": "Menu F", "2026-03-17": "Menu G", "2026-03-18": "Menu H", "2026-03-19": "Menu I" };
     const menuImages = { "Menu A": "asset/img/menu-a.jpg", "Menu B": "asset/img/menu-b.jpg", "Menu C": "asset/img/menu-c.jpg", "Menu D": "asset/img/menu-d.jpg", "Menu E": "asset/img/menu-e.jpg", "Menu F": "asset/img/menu-f.jpg", "Menu G": "asset/img/menu-g.jpg", "Menu H": "asset/img/menu-h.jpg", "Menu I": "asset/img/menu-i.jpg", "Menu J": "asset/img/menu-j.jpg" };
     const formatIDR = (val) => "Rp " + Number(val).toLocaleString('id-ID');
@@ -408,84 +357,6 @@
         
     // ===== DISABLED DATES FEATURE =====
     let disabledDatesSet = new Set();
-    
-    // ===== CHECK EVENT ARCHIVE STATUS =====
-    async function checkAndBlockArchivedEvent() {
-        if (!SS_ID) {
-            console.log('❌ Tidak ada ssId, skip check archive');
-            return true; // Active by default
-        }
-        
-        try {
-            console.log('🔍 Checking archive status untuk event:', SS_ID);
-            const checkUrl = new URL(MASTER_SCRIPT_URL);
-            checkUrl.searchParams.set('action', 'checkEventArchiveStatus');
-            checkUrl.searchParams.set('ssId', SS_ID);
-            
-            console.log('📍 Check URL (MASTER):', checkUrl.toString());
-            
-            const response = await fetch(checkUrl.toString(), { method: 'GET' });
-            const responseText = await response.text();
-            
-            console.log('📍 Raw response:', responseText);
-            
-            const result = JSON.parse(responseText);
-            console.log('📋 Parsed result:', result);
-            
-            if (result.isArchived || result.status === 'archived') {
-                console.log('🚫 Event sudah di-archive, disable form');
-                
-                // Tampil banner merah warning
-                const bannerHTML = `
-                    <div class="alert alert-danger" id="archivedBanner" style="margin: 15px; border-radius: 10px; padding: 20px; text-align: center; font-weight: bold;">
-                        <h4 style="color: #dc3545; margin-bottom: 10px;">⛔ EVENT DITUTUP</h4>
-                        <p style="margin: 0; color: #721c24; font-size: 1rem;">
-                            Event "${result.namaEvent || EVENT_NAME}" sudah ditutup dan tidak menerima reservasi baru.
-                        </p>
-                        <p style="margin: 10px 0 0 0; color: #721c24; font-size: 0.9rem;">
-                            Mohon hubungi admin untuk informasi lebih lanjut.
-                        </p>
-                    </div>
-                `;
-                
-                // Inject banner di atas form
-                const mainCard = document.querySelector('.main-card');
-                if (mainCard) {
-                    mainCard.innerHTML = bannerHTML + mainCard.innerHTML;
-                }
-                
-                // Disable semua form input dan modals
-                const formInputs = document.querySelectorAll('input, select, textarea, button');
-                formInputs.forEach(el => {
-                    if (el.getAttribute('id') !== 'archivedBanner') {
-                        el.disabled = true;
-                        el.style.opacity = '0.5';
-                        el.style.cursor = 'not-allowed';
-                        el.style.pointerEvents = 'none';
-                    }
-                });
-                
-                // Hide semua step dan modal
-                document.getElementById('step1').style.display = 'none';
-                document.getElementById('step2').classList.add('hidden');
-                document.getElementById('step3').classList.add('hidden');
-                
-                // Hide stepper
-                const stepper = document.querySelector('.stepper-wrapper');
-                if (stepper) stepper.style.opacity = '0.3';
-                
-                return false; // Event archived
-            } else {
-                console.log('✅ Event aktif, allow reservasi');
-                return true; // Event active
-            }
-        } catch (err) {
-            console.error('⚠️ Error checking archive status:', err);
-            console.error('Stack:', err.stack);
-            // Jika ada error, allow reservasi (safe default)
-            return true;
-        }
-    }
     
     async function loadDisabledDates() {
         try {
@@ -632,11 +503,7 @@
     }
 
     // Setup Booking ID input formatter
-    document.addEventListener('DOMContentLoaded', async function() {
-        console.log('🎯 DOMContentLoaded - Checking event archive status...');
-        // Check apakah event sudah di-archive (tunggu selesai)
-        await checkAndBlockArchivedEvent();
-        
+    document.addEventListener('DOMContentLoaded', function() {
         console.log('🎯 DOMContentLoaded - Starting loadDisabledDates...');
         // Load disabled dates on init
         loadDisabledDates();
@@ -973,7 +840,7 @@
                                 <li>Pembayaran hanya dilakukan via transfer.</li>
                                 <li>Melakukan pelunasan paling lambat H-1 sebelum acara.</li>
                                 <li>Unggah bukti pembayaran untuk konfirmasi.</li>
-                                <li>Pembatalan, tidak ada pengembalian dana.</li>
+                                <li>Pembatalan atau pengurangan pax, tidak ada pengembalian dana.</li>
                                 <li>Umur 0 - 5 tahun tidak dikenakan biaya, 6 - 11 tahun kategori anak.</li>
                                 <li>Hadir 15 menit sebelum jadwal.</li>
                                 <li>Toleransi keterlambatan 30 menit.</li>
@@ -1612,17 +1479,6 @@
                 try {
                     const resp = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
                     const respText = await resp.text();
-                    
-                    // Parse response untuk check berbagai error
-                    const respObj = JSON.parse(respText);
-                    
-                    if (respObj.message === 'EVENT_ARCHIVED' || respObj.detail === 'Event sudah ditutup dan tidak menerima reservasi baru') {
-                        alert('❌ Event sudah ditutup dan tidak menerima reservasi baru.');
-                        btn.innerText = "KIRIM RESERVASI";
-                        btn.disabled = false;
-                        return;
-                    }
-                    
                     if (respText.includes('DATE_CLOSED')) {
                         alert('❌ Tanggal sudah ditutup untuk reservasi.');
                         btn.innerText = "KIRIM RESERVASI";
